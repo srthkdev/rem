@@ -1,23 +1,12 @@
-import { auth } from "@/lib/auth"
-import { authViewPaths } from "@daveyplate/better-auth-ui/server"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
-import { AuthView } from "./view"
+"use client";
 
-export function generateStaticParams() {
-    return Object.values(authViewPaths).map((pathname) => ({ pathname }))
-}
+import { useEffect } from "react";
+import { AuthView } from "@/components/auth-view";
+import { useParams } from "next/navigation";
 
-export default async function AuthPage({ params }: { params: Promise<{ pathname: string }> }) {
-    const { pathname } = await params
-
-    // **EXAMPLE** SSR route protection for /auth/settings
-    // NOTE: This opts /auth/settings out of static rendering
-    // It already handles client side protection via useAuthenticate
-    if (pathname === "settings") {
-        const sessionData = await auth.api.getSession({ headers: await headers() })
-        if (!sessionData) redirect("/auth/sign-in?redirectTo=/auth/settings")
-    }
-
-    return <AuthView pathname={pathname} />
+export default function AuthPage() {
+  const params = useParams();
+  const pathname = Array.isArray(params.pathname) ? params.pathname[0] : params.pathname as string;
+  
+  return <AuthView pathname={pathname} />;
 }

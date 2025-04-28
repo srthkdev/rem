@@ -1,150 +1,137 @@
 "use client";
 
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { toast } from "sonner";
+import { useAuthStore } from "@/lib/store/auth-store";
 import { signOut } from "@/lib/auth-client";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import crypto from 'crypto';
 
 export function Header() {
-    const pathname = usePathname();
-    const [session, setSession] = useState<{ email: string; name: string; isAuthenticated: boolean; picture?: string } | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { user, isAuthenticated, isLoading } = useAuthStore();
+    const router = useRouter();
+    const [profileImage, setProfileImage] = useState<string | null>(null);
 
+    // If user doesn't have an image, try to get one from Gravatar
     useEffect(() => {
-        try {
-            const storedSession = localStorage.getItem('user-session');
-            if (storedSession) {
-                setSession(JSON.parse(storedSession));
-            }
-        } catch (error) {
-            console.error("Error loading session:", error);
-        } finally {
-            setLoading(false);
+        if (user?.email && !user?.image) {
+            // Generate MD5 hash for Gravatar
+            const emailMd5 = user.email.trim().toLowerCase();
+            // In browser environment we can't use Node.js crypto directly, so using a simple approach
+            // In production, consider using a proper MD5 library or server-side generation
+            const hash = Array.from(emailMd5).reduce((acc, char) => 
+                acc + char.charCodeAt(0).toString(16), '');
+            
+            // Use Gravatar with a default to UI Avatars
+            const name = user.name || user.email.split('@')[0];
+            const encodedName = encodeURIComponent(name);
+            const uiAvatarUrl = `https://ui-avatars.com/api/?name=${encodedName}&background=c96442&color=fff`;
+            
+            // Set Gravatar with UI Avatars as fallback
+            setProfileImage(`https://www.gravatar.com/avatar/${hash}?d=${encodeURIComponent(uiAvatarUrl)}`);
+        } else if (user?.image) {
+            setProfileImage(user.image);
+        } else {
+            setProfileImage(null);
         }
-    }, []);
+    }, [user]);
 
     const handleSignOut = async () => {
         try {
-            await signOut();
+            const result = await signOut();
+            if (result.success) {
+                toast.success("Signed out successfully");
+                router.push("/");
+            } else {
+                toast.error("Failed to sign out");
+            }
         } catch (error) {
-            console.error("Error signing out with auth client:", error);
+            toast.error("Failed to sign out");
         }
-        localStorage.removeItem('user-session');
-        setSession(null);
-        toast.success("Successfully signed out");
+    };
+
+    // Function to get initials from name or email
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
     };
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-14 max-w-screen-2xl items-center">
-                <Link href="/" className="font-[family-name:var(--font-instrument-serif)] mr-8 text-2xl text-[#C96442]">
-                    <div className="px-4 flex items-baseline">
-                        <span className="font-bold">REM</span>
-                    </div>
-                </Link>
-                <nav className="flex items-center space-x-6 text-sm font-medium">
-                    <Link
-                        href="/"
-                        className={cn(
-                            "transition-colors hover:text-foreground/80 relative group",
-                            pathname === "/" ? "text-foreground" : "text-foreground/60"
-                        )}
-                    >
+            <div className="container flex h-16 items-center justify-between px-4 md:px-6 mx-auto">
+                {/* Logo - Left Aligned */}
+                <div className="flex items-center">
+                    <Link href="/" className="flex items-baseline mr-4">
+                        <span className="font-[family-name:var(--font-work-sans)] text-2xl font-bold text-[#C96442]">REM</span>
+                    </Link>
+                </div>
+
+                {/* Navigation Links - Center Aligned */}
+                <nav className="hidden md:flex items-center justify-center flex-1 gap-6">
+                    <Link href="/home" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
                         Home
-                        <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#C96442] transform scale-x-0 transition-transform group-hover:scale-x-100" />
                     </Link>
-                    <Link
-                        href="/explore"
-                        className={cn(
-                            "transition-colors hover:text-foreground/80 relative group",
-                            pathname?.startsWith("/explore") ? "text-foreground" : "text-foreground/60"
-                        )}
-                    >
+                    <Link href="/explore" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
                         Explore
-                        <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#C96442] transform scale-x-0 transition-transform group-hover:scale-x-100" />
                     </Link>
-                    <Link
-                        href="/about"
-                        className={cn(
-                            "transition-colors hover:text-foreground/80 relative group",
-                            pathname?.startsWith("/about") ? "text-foreground" : "text-foreground/60"
-                        )}
-                    >
+                    <Link href="/about" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
                         About
-                        <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#C96442] transform scale-x-0 transition-transform group-hover:scale-x-100" />
                     </Link>
-                    {session && session.isAuthenticated && (
-                        <Link
-                            href="/dashboard"
-                            className={cn(
-                                "transition-colors hover:text-foreground/80 relative group",
-                                pathname?.startsWith("/dashboard") ? "text-foreground" : "text-foreground/60"
-                            )}
-                        >
-                            Dashboard
-                            <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#C96442] transform scale-x-0 transition-transform group-hover:scale-x-100" />
-                        </Link>
-                    )}
+                    <Link href="/dashboard" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
+                        Dashboard
+                    </Link>
                 </nav>
-                <div className="flex flex-1 items-center justify-end space-x-4">
-                    <nav className="flex items-center space-x-2">
-                        {!loading && (
-                            <>
-                                {!session || !session.isAuthenticated ? (
-                                    <>
-                                        <Link
-                                            href="/auth/sign-in"
-                                            className={cn(
-                                                buttonVariants({ variant: "ghost", size: "sm" }),
-                                                "px-4 hover:bg-muted hover:text-foreground"
-                                            )}
-                                        >
-                                            Sign In
-                                        </Link>
-                                        <Link
-                                            href="/auth/sign-up"
-                                            className={cn(
-                                                buttonVariants({ size: "sm" }),
-                                                "bg-[#C96442] hover:bg-[#C96442]/90 px-4"
-                                            )}
-                                        >
-                                            Sign Up
-                                        </Link>
-                                    </>
+
+                {/* Auth Buttons - Right Aligned */}
+                <div className="flex items-center gap-2">
+                    {isLoading ? (
+                        <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+                    ) : isAuthenticated ? (
+                        <div className="flex items-center gap-2">
+                            <div className="relative group">
+                                {profileImage ? (
+                                    <img 
+                                        src={profileImage} 
+                                        alt="Profile" 
+                                        className="w-9 h-9 rounded-full object-cover cursor-pointer"
+                                    />
                                 ) : (
-                                    <div className="flex items-center gap-3">
-                                        {session.picture ? (
-                                            <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                                                <Image
-                                                    src={session.picture}
-                                                    alt="Profile"
-                                                    fill
-                                                    className="object-cover"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="w-8 h-8 rounded-full bg-[#C96442]/10 flex items-center justify-center text-[#C96442] font-medium">
-                                                {(session.name || session.email).charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                        <button
-                                            onClick={handleSignOut}
-                                            className={cn(
-                                                buttonVariants({ variant: "ghost", size: "sm" }),
-                                                "px-4 hover:bg-muted hover:text-foreground"
-                                            )}
-                                        >
-                                            Sign Out
-                                        </button>
+                                    <div className="w-9 h-9 rounded-full bg-[#C96442] flex items-center justify-center text-white text-xs font-medium cursor-pointer">
+                                        {user?.name ? getInitials(user.name) : user?.email ? getInitials(user.email.split('@')[0]) : "U"}
                                     </div>
                                 )}
-                            </>
-                        )}
-                    </nav>
+                                
+                                <div className="hidden group-hover:block absolute right-0 top-full mt-1 bg-white shadow-lg rounded-md p-2 min-w-32 z-50">
+                                    <button
+                                        onClick={handleSignOut}
+                                        className="w-full text-left px-2 py-1 text-sm hover:bg-[#E3DACC]/20 rounded"
+                                    >
+                                        Sign Out
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href="/auth/sign-in"
+                                className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]"
+                            >
+                                Sign In
+                            </Link>
+                            <Link
+                                href="/auth/sign-up"
+                                className="inline-flex h-9 items-center justify-center rounded-md bg-[#C96442] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#C96442]/90 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                            >
+                                Sign Up
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
         </header>

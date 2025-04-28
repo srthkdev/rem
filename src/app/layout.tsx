@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next"
 import { Work_Sans, Instrument_Serif } from "next/font/google"
+import { Toaster } from "sonner"
+import { AuthProvider } from "@/components/providers/auth-provider"
 
 import "@/styles/globals.css"
 
 import { Header } from "@/components/header"
 import type { ReactNode } from "react"
-import { Providers } from "./providers"
+import { Providers } from "@/components/providers"
 
 const workSans = Work_Sans({
     variable: "--font-work-sans",
@@ -19,8 +21,8 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-    title: "Rem: Research Made Accessible",
-    description: "Democratizing research by translating complex papers into accessible formats for everyone"
+    title: "REM",
+    description: "REM - Real Estate Management",
 }
 
 export const viewport: Viewport = {
@@ -35,23 +37,26 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
     children
-}: Readonly<{
+}: {
     children: ReactNode
-}>) {
+}) {
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
                 <link rel="icon" href="/favicon.ico" sizes="any" />
             </head>
             <body className={`${workSans.variable} ${instrumentSerif.variable} antialiased`}>
-                <Providers>
-                    <div className="flex min-h-svh flex-col">
-                        <Header />
-                        <main className="flex-grow">
-                            {children}
-                        </main>
-                    </div>
-                </Providers>
+                <AuthProvider>
+                    <Providers>
+                        <div className="flex min-h-svh flex-col">
+                            <Header />
+                            <main className="flex-grow">
+                                {children}
+                            </main>
+                        </div>
+                    </Providers>
+                    <Toaster position="top-center" />
+                </AuthProvider>
             </body>
         </html>
     )

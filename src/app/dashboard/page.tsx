@@ -4,30 +4,63 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
+import { useAuthStore } from "@/lib/store/auth-store"
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [user, setUser] = useState<{ email: string; name: string; isAuthenticated: boolean } | null>(null)
   const [loading, setLoading] = useState(true)
+  const { user, setUser } = useAuthStore()
 
   useEffect(() => {
-    try {
-      const storedSession = localStorage.getItem('user-session')
-      if (storedSession) {
-        const session = JSON.parse(storedSession)
-        if (session.isAuthenticated) {
-          setUser(session)
-          setLoading(false)
-          return
+    const checkSession = () => {
+      try {
+        console.log("Checking session...")
+        const storedSession = localStorage.getItem('user-session')
+        console.log("Session data:", storedSession ? "Found" : "Not found")
+        
+        if (storedSession) {
+          const session = JSON.parse(storedSession)
+          console.log("Parsed session:", session)
+          
+          if (session && session.isAuthenticated) {
+            console.log("Valid authenticated session found")
+            // Update auth store with user data
+            setUser({
+              id: session.id,
+              email: session.email,
+              name: session.name,
+              image: session.image
+            })
+            setLoading(false)
+            return true
+          } else {
+            console.log("Session exists but not authenticated")
+          }
         }
+        
+        console.log("No valid session found, redirecting to sign in")
+        router.push('/auth/sign-in')
+        return false
+      } catch (error) {
+        console.error("Error checking session:", error)
+        toast.error("Error loading your session")
+        router.push('/auth/sign-in')
+        return false
       }
-      // If no valid session is found, redirect to sign in
-      router.push('/auth/sign-in')
-    } catch (error) {
-      console.error("Error loading session:", error)
-      router.push('/auth/sign-in')
     }
-  }, [router])
+
+    // Check session immediately
+    const hasValidSession = checkSession()
+    
+    // If no valid session, redirect after a short delay
+    if (!hasValidSession) {
+      const timeout = setTimeout(() => {
+        setLoading(false)
+      }, 2000)
+      return () => clearTimeout(timeout)
+    }
+  }, [router, setUser])
 
   if (loading) {
     return (
@@ -47,11 +80,20 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Welcome, {user?.name || user?.email}</CardTitle>
+            <CardTitle>Welcome, {user?.name || user?.email?.split('@')[0]}</CardTitle>
             <CardDescription>Your personal dashboard</CardDescription>
           </CardHeader>
           <CardContent>
             <p>This is a protected page that only authenticated users can access.</p>
+            {user?.image && (
+              <div className="mt-4">
+                <img 
+                  src={user.image} 
+                  alt={user.name || "Profile"} 
+                  className="w-16 h-16 rounded-full"
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
         
