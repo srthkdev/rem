@@ -8,7 +8,7 @@ instruments serif font for headings and work sans for paragraphs use google font
 #C96442
 #FAF9F6, #E3DACC, #BFB8AC
 #262625
-#788C5E
+
 
 
 use zod, zustand, reactquery, lucid icons, bun, nextjs, ts, write robust code with professional file structure

@@ -48,12 +48,7 @@ export default function RootLayout({
             <body className={`${workSans.variable} ${instrumentSerif.variable} antialiased`}>
                 <AuthProvider>
                     <Providers>
-                        <div className="flex min-h-svh flex-col">
-                            <Header />
-                            <main className="flex-grow">
-                                {children}
-                            </main>
-                        </div>
+                        {children}
                     </Providers>
                     <Toaster position="top-center" />
                 </AuthProvider>
