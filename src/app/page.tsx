@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import { IntroducingRemAI } from "@/components/introducing-rem-ai";
 import { Header } from "@/components/header";
+import { ArxivSearchInput } from "@/components/ui/arxiv-search-input";
 
 const placeholders = [
     "Summarize the latest research on quantum computing...",
@@ -49,11 +50,7 @@ export default function Home() {
 
                     <div className="max-w-3xl mx-auto mt-10 mb-12">
                         <div className="relative">
-                            <PlaceholdersAndVanishInput
-                                placeholders={placeholders}
-                                onChange={handleChange}
-                                onSubmit={onSubmit}
-                            />
+                            <ArxivSearchInput />
                         </div>
                         <div className="mt-8 flex items-center justify-center gap-4">
                             <p className="text-sm text-neutral-400">

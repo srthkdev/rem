@@ -5,10 +5,12 @@ import { useAuthStore } from "@/lib/store/auth-store"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/sidebar"
 import { toast } from "sonner"
+import { useTheme } from "next-themes"
 
 export default function ProjectLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
   const { user, isLoading } = useAuthStore()
+  const { theme } = useTheme()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
@@ -22,8 +24,8 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
   // Show loading state while checking auth
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      <div className="flex items-center justify-center min-h-screen bg-[#FAF9F6] dark:bg-[#262625]">
+        <div className="animate-spin h-8 w-8 border-4 border-[#C96442] border-t-transparent rounded-full"></div>
       </div>
     )
   }
@@ -32,10 +34,10 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
   if (!user && !isLoading) return null
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen h-screen overflow-hidden bg-[#FAF9F6] dark:bg-[#262625] text-[#262625] dark:text-[#FAF9F6]">
       <Sidebar onCollapse={setSidebarCollapsed} />
-      <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'pl-0' : 'pl-64'}`}>
-        <main className="p-6">{children}</main>
+      <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'pl-0' : 'pl-64'} h-full overflow-hidden`}>
+        <main className="p-6 h-full overflow-auto">{children}</main>
       </div>
     </div>
   )

@@ -1,6 +1,5 @@
 "use client"
 
-import { ThemeProvider } from "next-themes"
 import { type ReactNode, useRef } from "react"
 import { Toaster } from "sonner"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -21,19 +20,8 @@ export function Providers({ children }: { children: ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClientRef.current}>
-            <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-                themeColor={{
-                    light: "#FAF9F6",
-                    dark: "#262625"
-                }}
-            >
-                {children}
-                <Toaster position="top-center" />
-            </ThemeProvider>
+            {children}
+            <Toaster position="top-center" />
             <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
     )

@@ -7,11 +7,20 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMutation } from "@tanstack/react-query"
+import { IntroducingRemAI } from "@/components/introducing-rem-ai";
+import { ArxivSearchInput } from "@/components/ui/arxiv-search-input"
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
+
+// Placeholder texts for project input
+const placeholders = [
+  "What research topic are you interested in exploring?",
+  "What scientific question would you like to investigate?",
+  "Describe the topic you'd like to research...",
+  "What field of study are you focusing on?",
+  "What specific problem are you trying to solve?",
+];
 
 // Project schema for form validation
 const projectSchema = z.object({
@@ -38,6 +47,7 @@ export default function NewProjectPage() {
   const router = useRouter()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [useArxivSearch, setUseArxivSearch] = useState(false)
   
   // Form setup with zod validation
   const form = useForm<ProjectFormValues>({
@@ -92,108 +102,77 @@ export default function NewProjectPage() {
     }
   }
 
+  // Handle input change from the PlaceholdersAndVanishInput
+  const handleVanishInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue("description", e.target.value);
+  };
+
+  // Handle form submit from VanishInput
+  const handleVanishInputSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (description && description.length >= 10) {
+      handleSubmit(onSubmit)();
+    }
+  };
+
   return (
-    <div className="max-w-3xl mx-auto pt-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Create a New Project</h1>
-        <p className="text-muted-foreground">Describe your project idea and we'll help you bring it to life.</p>
+    <div className="px-4 pt-16 pb-8 max-w-7xl mx-auto w-full relative">
+      <div className="flex flex-col items-center justify-center mt-8 mb-10">
+        <IntroducingRemAI />
+        <h2 className="font-[family-name:var(--font-instrument-serif)] text-5xl md:text-7xl font-bold text-[#C96442] pt-10">Rem: </h2>
+        <h3 className="font-[family-name:var(--font-instrument-serif)] text-5xl md:text-7xl font-bold text-white">Research Made Accessible</h3>
+       
       </div>
       
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex-shrink-0 w-full mx-auto">
-          <Card className="border border-alt-stone-200 dark:border-zinc-700 bg-stone-100/50 dark:bg-stone-800/50 rounded-xl shadow-sm backdrop-blur-md overflow-visible">
-            <CardContent className="p-0">
-              <div className="relative">
-                <div className="relative px-3 pt-3" ref={containerRef}>
-                  <Textarea
-                    {...register("description")}
-                    ref={(e) => {
-                      register("description").ref(e)
-                      // @ts-ignore - Combining refs
-                      textareaRef.current = e
-                    }}
-                    placeholder="What's on your mind tonight?"
-                    onKeyDown={handleKeyDown}
-                    className={cn(
-                      'bg-transparent',
-                      'border-none',
-                      'focus:ring-0',
-                      'focus-visible:border-0 focus-visible:ring-0',
-                      'resize-none',
-                      'py-3 px-4 min-h-[54px]',
-                      'text-alt-stone-900 dark:text-gray-100',
-                      'placeholder-alt-stone-400 dark:placeholder-gray-400',
-                      'transition-all duration-200 rounded-lg'
-                    )}
-                    style={{
-                      minHeight: '54px',
-                      height: 'auto',
-                      outline: 'none',
-                      border: 'none',
-                      boxShadow: 'none'
-                    }}
-                  />
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={!description?.trim() || mutation.isPending}
-                    className={cn(
-                      'absolute right-5 bottom-2',
-                      'bg-alt-green-500 dark:bg-emerald-500',
-                      'text-white dark:text-gray-900',
-                      'hover:bg-alt-green-600 hover:text-white',
-                      'dark:hover:bg-emerald-400 dark:hover:text-gray-900',
-                      'h-8 w-8 rounded-full',
-                      'disabled:opacity-30 disabled:cursor-not-allowed',
-                      'transition-all duration-200',
-                      'focus:ring-2 focus:ring-alt-green-300 dark:focus:ring-emerald-300/60 focus:ring-offset-0',
-                      'shadow-sm'
-                    )}
-                  >
-                    {mutation.isPending ? (
-                      <span className="h-4 w-4 block rounded-full border-2 border-t-transparent border-current animate-spin"></span>
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          {errors.description && (
-            <p className="text-red-500 text-sm mt-2 ml-4">{errors.description.message}</p>
-          )}
-        </div>
-
-        <div className="mt-6 flex justify-between">
+      <div className="max-w-3xl mx-auto mt-10 mb-8">
+        <div className="flex items-center justify-center gap-4 mb-8">
+       
+          
           <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => router.push('/dashboard')}
+            type="button"
+            variant={useArxivSearch ? "default" : "outline"}
+            
+            className={cn(
+              useArxivSearch ? "bg-[#C96442] hover:bg-[#C96442]/90 text-[#FAF9F6]" : 
+              "border-[#E3DACC] dark:border-[#BFB8AC]/30 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/10"
+            )}
           >
-            Cancel
+            Create a New Project
           </Button>
-          <div className="space-x-2">
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={() => {
-                // Save as draft logic would go here
-                toast.info("Project saved as draft")
-              }}
-            >
-              Save Draft
-            </Button>
-            <Button 
-              type="submit"
-              disabled={!description?.trim() || mutation.isPending}
-              className="bg-[#C96442] hover:bg-[#C96442]/90"
-            >
-              {mutation.isPending ? 'Creating...' : 'Create Project'}
-            </Button>
-          </div>
         </div>
-      </form>
+      
+        {useArxivSearch ? (
+          <div className="relative">
+            <ArxivSearchInput />
+            <div className="mt-4 text-center">
+              <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
+                Find and select a paper to start your research project
+              </p>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="relative mb-4">
+              <PlaceholdersAndVanishInput 
+                placeholders={placeholders}
+                onChange={handleVanishInputChange}
+                onSubmit={handleVanishInputSubmit}
+              />
+            </div>
+            
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-2 ml-4">{errors.description.message}</p>
+            )}
+            
+          </form>
+        )}
+        
+        <div className="mt-8 flex items-center justify-center gap-4">
+          <p className="text-sm text-neutral-400">
+            Powered by AI • 1M+ papers • Personalized learning
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

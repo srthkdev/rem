@@ -45,7 +45,7 @@ export default function RootLayout({
             <head>
                 <link rel="icon" href="/favicon.ico" sizes="any" />
             </head>
-            <body className={`${workSans.variable} ${instrumentSerif.variable} antialiased`}>
+            <body className={`${workSans.variable} ${instrumentSerif.variable} antialiased`} suppressHydrationWarning>
                 <AuthProvider>
                     <Providers>
                         {children}

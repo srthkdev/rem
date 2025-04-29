@@ -1,0 +1,93 @@
+import { NextRequest, NextResponse } from 'next/server';
+import axios from 'axios';
+import xml2js from 'xml2js';
+import { ArxivPaper } from '@/lib/store/project-store';
+
+export async function GET(request: NextRequest) {
+  try {
+    // Get the search query from URL parameters
+    const url = new URL(request.url);
+    const query = url.searchParams.get('query');
+    const maxResults = url.searchParams.get('maxResults') || '10';
+    
+    console.log('ArXiv API Request:', { query, maxResults });
+
+    // Validate the search query
+    if (!query) {
+      console.log('ArXiv API Error: No query provided');
+      return NextResponse.json(
+        { error: 'Search query is required' },
+        { status: 400 }
+      );
+    }
+
+    // Construct the ArXiv API URL
+    const arxivApiUrl = `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(
+      query
+    )}&max_results=${maxResults}&sortBy=relevance&sortOrder=descending`;
+    
+    console.log('Calling ArXiv API URL:', arxivApiUrl);
+
+    // Fetch data from ArXiv API
+    const response = await axios.get(arxivApiUrl);
+    const xmlData = response.data;
+    
+    console.log('ArXiv API Response received');
+
+    // Parse XML to JSON
+    const parser = new xml2js.Parser({ explicitArray: false });
+    const result = await parser.parseStringPromise(xmlData);
+
+    // Handle case where no entries are found
+    if (!result.feed.entry) {
+      console.log('ArXiv API: No entries found');
+      return NextResponse.json({ papers: [] });
+    }
+
+    // Format the results
+    const entries = Array.isArray(result.feed.entry)
+      ? result.feed.entry
+      : [result.feed.entry];
+      
+    console.log(`ArXiv API: Found ${entries.length} entries`);
+
+    const papers: ArxivPaper[] = entries.map((entry: any) => {
+      // Extract categories
+      const categories = Array.isArray(entry.category)
+        ? entry.category.map((cat: any) => cat.$.term)
+        : [entry.category.$.term];
+
+      // Extract authors
+      const authors = Array.isArray(entry.author)
+        ? entry.author.map((author: any) => author.name)
+        : [entry.author.name];
+
+      // Extract PDF URL
+      const pdfUrl = Array.isArray(entry.link)
+        ? entry.link.find((link: any) => link.$.title === 'pdf')?.$.href || ''
+        : '';
+        
+      // Extract ArXiv ID
+      const idStr = entry.id || '';
+      const arxivId = idStr.split('/').pop() || '';
+
+      return {
+        id: arxivId,
+        title: entry.title.replace(/\n/g, ' ').trim(),
+        authors,
+        summary: entry.summary.replace(/\n/g, ' ').trim(),
+        publishedDate: new Date(entry.published).toISOString(),
+        pdfUrl,
+        categories,
+      };
+    });
+
+    return NextResponse.json({ papers });
+  } catch (error) {
+    console.error('Error processing ArXiv search:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch results from ArXiv' },
+      { status: 500 }
+    );
+  }
+} 

@@ -106,10 +106,10 @@ export function Header() {
                                     </div>
                                 )}
                                 
-                                <div className="hidden group-hover:block absolute right-0 top-full mt-1 bg-white shadow-lg rounded-md p-2 min-w-32 z-50">
+                                <div className="hidden group-hover:block absolute right-0 top-full mt-1 bg-[#FAF9F6] dark:bg-[#262625] border border-[#E3DACC] dark:border-[#BFB8AC]/30 shadow-lg rounded-md p-2 min-w-32 z-50">
                                     <button
                                         onClick={handleSignOut}
-                                        className="w-full text-left px-2 py-1 text-sm hover:bg-[#E3DACC]/20 rounded"
+                                        className="w-full text-left px-2 py-1 text-sm text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/10 rounded"
                                     >
                                         Sign Out
                                     </button>

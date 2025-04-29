@@ -161,7 +161,7 @@ export default function ProjectChatPage() {
   
   // Handle navigation back to chat list
   const handleBack = () => {
-    router.push("/chats")
+    router.push("/project")
   }
   
   // Get user's initials for avatar

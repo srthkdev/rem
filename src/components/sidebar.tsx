@@ -116,7 +116,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
         className={cn(
           "fixed left-0 top-4 z-50 h-8 w-8 rounded-full transition-all duration-300",
           isCollapsed ? "left-4" : "left-56",
-          "bg-[#262625]/80 dark:bg-[#FAF9F6]/10 hover:bg-[#BFB8AC]/30 dark:hover:bg-[#BFB8AC]/30 text-[#FAF9F6] dark:text-[#262625]"
+          "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 hover:bg-[#E3DACC]/50 dark:hover:bg-[#BFB8AC]/30 text-[#262625] dark:text-[#FAF9F6] hover:text-[#262625] dark:hover:text-[#FAF9F6]"
         )}
       >
         {isCollapsed ? (
@@ -128,12 +128,12 @@ export function Sidebar({ onCollapse }: SidebarProps) {
       </Button>
 
       <div className={cn(
-        "flex flex-col h-screen bg-[#262625] dark:bg-[#FAF9F6] text-[#FAF9F6] dark:text-[#262625] border-r border-[#BFB8AC]/30",
+        "flex flex-col h-screen bg-[#FAF9F6] dark:bg-[#262625] text-[#262625] dark:text-[#FAF9F6] border-r border-[#E3DACC] dark:border-[#BFB8AC]/30",
         "fixed left-0 top-0 z-40 transition-all duration-300 ease-in-out",
         isCollapsed ? "w-0 opacity-0 -translate-x-full" : "w-64 opacity-100 translate-x-0"
       )}>
         {/* Sidebar Header - REM Logo */}
-        <div className="flex items-center h-14 px-5 border-b border-[#BFB8AC]/30">
+        <div className="flex items-center h-14 px-5 border-b border-[#E3DACC] dark:border-[#BFB8AC]/30">
           <Link href="/" className="flex items-baseline space-x-1">
             <span className="font-[family-name:var(--font-instrument-serif)] text-3xl font-bold text-[#C96442]">REM</span>
           </Link>
@@ -155,7 +155,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
           <Button
             variant="outline"
             onClick={() => router.push("/project")}
-            className="w-full justify-start text-sm text-[#BFB8AC] dark:text-[#262625]/70 bg-transparent border-[#E3DACC]/30 hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-[#FAF9F6] dark:hover:text-[#262625] rounded-full"
+            className="w-full justify-start text-sm text-[#262625] dark:text-[#FAF9F6] bg-transparent border-[#E3DACC] dark:border-[#BFB8AC]/30 hover:bg-[#E3DACC]/30 hover:text-[#262625] dark:hover:bg-[#BFB8AC]/10 rounded-full"
           >
             <MessageCircle className="mr-2 h-3.5 w-3.5" />
             <span>Projects</span>
@@ -167,7 +167,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
           <Button
             variant="ghost"
             onClick={() => router.push("/dashboard")}
-            className="w-full justify-start text-sm text-[#BFB8AC] dark:text-[#262625]/70 hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-[#FAF9F6] dark:hover:text-[#262625]"
+            className="w-full justify-start text-sm text-[#262625]/70 dark:text-[#BFB8AC] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
@@ -177,10 +177,10 @@ export function Sidebar({ onCollapse }: SidebarProps) {
         {/* Recents Header */}
         <div className="px-3 pt-1 pb-1">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-[family-name:var(--font-work-sans)] font-semibold text-[#BFB8AC] dark:text-[#262625]/70">Recents</h2>
+            <h2 className="text-xs font-[family-name:var(--font-work-sans)] font-semibold text-[#262625]/70 dark:text-[#BFB8AC]">Recents</h2>
             <button 
               onClick={toggleRecents}
-              className="text-[#BFB8AC] dark:text-[#262625]/70 hover:text-[#FAF9F6] dark:hover:text-[#262625] p-1 rounded-md focus:outline-none"
+              className="text-[#262625]/70 dark:text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6] p-1 rounded-md focus:outline-none"
             >
               <ChevronDown 
                 className={cn(
@@ -205,26 +205,23 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                     className={cn(
                       "flex flex-col items-start justify-start h-auto py-2 px-3 rounded-md",
                       pathname === project.route 
-                        ? "bg-[#BFB8AC]/10 dark:bg-[#E3DACC]/20 text-[#FAF9F6] dark:text-[#262625] border-l-2 border-[#C96442]" 
-                        : "hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 text-[#BFB8AC] dark:text-[#262625]/70 hover:text-[#FAF9F6] dark:hover:text-[#262625]"
+                        ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6] border-l-2 border-[#C96442] hover:text-[#262625] dark:hover:text-[#FAF9F6]" 
+                        : "hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 text-[#262625]/70 dark:text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6]"
                     )}
                   >
                     <Link href={project.route} className="w-full text-left">
                       <div className="truncate text-sm font-medium">{project.name}</div>
-                      {project.lastMessage && (
-                        <div className="truncate text-xs mt-1 text-[#BFB8AC]/70 dark:text-[#262625]/50">{project.lastMessage}</div>
-                      )}
                     </Link>
                   </Button>
                 ))
               ) : (
                 <div className="flex flex-col items-center justify-center py-6 px-3 text-center">
-                  <p className="text-sm text-[#BFB8AC] dark:text-[#262625]/70 mb-3">No projects yet</p>
+                  <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC] mb-3">No projects yet</p>
                   <Button 
                     onClick={() => router.push('/project/new')}
                     variant="outline" 
                     size="sm"
-                    className="bg-transparent border-[#C96442] text-[#C96442] hover:bg-[#C96442]/10"
+                    className="bg-transparent border-[#C96442] text-[#C96442] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#C96442]"
                   >
                     Create your first project
                   </Button>
@@ -234,23 +231,12 @@ export function Sidebar({ onCollapse }: SidebarProps) {
           </ScrollArea>
         )}
 
-        {/* All Projects Button */}
-        <div className="px-3 pt-1 pb-3">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/project')}
-            className="w-full justify-start text-[#BFB8AC] dark:text-[#262625]/70 hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-[#FAF9F6] dark:hover:text-[#262625] gap-2"
-          >
-            <CircleEllipsis className="h-4 w-4" />
-            <span className="text-sm">All Projects</span>
-          </Button>
-        </div>
 
         {/* User Profile */}
-        <div className="px-3 py-3 mt-auto border-t border-[#BFB8AC]/30">
+        <div className="px-3 py-3 mt-auto border-t border-[#E3DACC] dark:border-[#BFB8AC]/30">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center justify-between w-full hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 px-2 h-10">
+              <Button variant="ghost" className="flex items-center justify-between w-full hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6] px-2 h-10">
                 <div className="flex items-center space-x-2">
                   <Avatar className="h-7 w-7">
                     <AvatarImage src={user?.image || undefined} />
@@ -264,45 +250,45 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                     </span>
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4 text-[#BFB8AC] dark:text-[#262625]/70" />
+                <ChevronDown className="h-4 w-4 text-[#262625]/70 dark:text-[#BFB8AC]" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[200px] bg-[#262625] dark:bg-[#FAF9F6] border-[#BFB8AC]/30 text-[#FAF9F6] dark:text-[#262625]">
-              <DropdownMenuItem onClick={() => router.push('/settings')} className="hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-[#FAF9F6] dark:hover:text-[#262625]">
+            <DropdownMenuContent align="end" className="w-[200px] bg-[#FAF9F6] dark:bg-[#262625] border-[#E3DACC] dark:border-[#BFB8AC]/30 text-[#262625] dark:text-[#FAF9F6]">
+              <DropdownMenuItem onClick={() => router.push('/settings')} className="text-[#262625] !data-[highlighted]:text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push('/profile')} className="hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-[#FAF9F6] dark:hover:text-[#262625]">
+              <DropdownMenuItem onClick={() => router.push('/profile')} className="text-[#262625] !data-[highlighted]:text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]">
                 <UserCircle className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
               
               {/* Theme Toggle */}
-              <Separator className="my-1 bg-[#BFB8AC]/30 dark:bg-[#262625]/20" />
+              <Separator className="my-1 bg-[#E3DACC] dark:bg-[#BFB8AC]/30" />
               <DropdownMenuItem onClick={() => setTheme('light')} className={cn(
-                "hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-[#FAF9F6] dark:hover:text-[#262625]",
-                theme === 'light' && "bg-[#BFB8AC]/10 dark:bg-[#E3DACC]/20"
+                "text-[#262625] !data-[highlighted]:text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]",
+                theme === 'light' && "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10"
               )}>
                 <Sun className="mr-2 h-4 w-4" />
                 <span>Light mode</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTheme('dark')} className={cn(
-                "hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-[#FAF9F6] dark:hover:text-[#262625]",
-                theme === 'dark' && "bg-[#BFB8AC]/10 dark:bg-[#E3DACC]/20"
+                "text-[#262625] !data-[highlighted]:text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]",
+                theme === 'dark' && "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10"
               )}>
                 <Moon className="mr-2 h-4 w-4" />
                 <span>Dark mode</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTheme('system')} className={cn(
-                "hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-[#FAF9F6] dark:hover:text-[#262625]",
-                theme === 'system' && "bg-[#BFB8AC]/10 dark:bg-[#E3DACC]/20"
+                "text-[#262625] !data-[highlighted]:text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]",
+                theme === 'system' && "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10"
               )}>
                 <LaptopIcon className="mr-2 h-4 w-4" />
                 <span>System</span>
               </DropdownMenuItem>
               
-              <Separator className="my-1 bg-[#BFB8AC]/30 dark:bg-[#262625]/20" />
-              <DropdownMenuItem onClick={handleSignOut} className="text-red-400 dark:text-red-500 hover:bg-[#BFB8AC]/10 dark:hover:bg-[#E3DACC]/20 hover:text-red-300 dark:hover:text-red-700">
+              <Separator className="my-1 bg-[#E3DACC] dark:bg-[#BFB8AC]/30" />
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-500 !data-[highlighted]:text-red-600 dark:text-red-400 hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-red-600 dark:hover:text-red-300 hover:border-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
