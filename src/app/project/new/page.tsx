@@ -13,7 +13,7 @@ import { searchArxivPapers } from "@/lib/services/arxiv-service"
 import { ArxivPaper, useProjectStore } from "@/lib/store/project-store"
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
 import { PaperSearchGrid } from "@/components/paper-search-grid"
-import { Search, X } from "lucide-react"
+import { Search, X, Sparkles } from "lucide-react"
 
 // Placeholder texts for paper search input
 const placeholders = [
@@ -160,7 +160,7 @@ export default function NewProjectPage() {
       <div className="flex flex-col items-center justify-center mt-8 mb-10">
         <IntroducingRemAI />
         <h2 className="font-[family-name:var(--font-instrument-serif)] text-5xl md:text-7xl font-bold text-[#C96442] pt-10">Rem: </h2>
-        <h3 className="font-[family-name:var(--font-instrument-serif)] text-5xl md:text-7xl font-bold text-white">Research Made Accessible</h3>
+        <h3 className="font-[family-name:var(--font-instrument-serif)] text-5xl md:text-7xl font-bold text-[#C96442] dark:text-[white]">Research Made Accessible</h3>
       </div>
       
       <div className="max-w-5xl mx-auto mt-10 mb-8">
@@ -172,26 +172,42 @@ export default function NewProjectPage() {
               onChange={handleInputChange}
               onSubmit={handleSubmit}
             />
-            {query && (
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={() => {
-                  setQuery("")
-                  clearSearchResults()
-                }}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6] hover:bg-transparent"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+              {selectedPaper && (
+                <Button
+                  onClick={handleCreateProject}
+                  disabled={createProjectMutation.isPending}
+                  size="sm"
+                  className="bg-[#C96442] hover:bg-[#C96442]/90 text-[#FAF9F6] h-8 rounded-full text-xs px-3 flex items-center gap-1.5"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Create Project
+                </Button>
+              )}
+              {query && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => {
+                    setQuery("")
+                    clearSearchResults()
+                  }}
+                  className="h-7 w-7 text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6] hover:bg-transparent flex-shrink-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
         
         {/* Search Results Grid */}
         {(debouncedQuery.length >= 3 || searchResults.length > 0) && (
-          <div className={cn("mt-6", debouncedQuery ? "opacity-100" : "opacity-0 pointer-events-none")}>
+          <div className={cn(
+            "mt-6 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-thin scrollbar-thumb-[#C96442] scrollbar-track-transparent", 
+            debouncedQuery ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}>
             <PaperSearchGrid
               papers={searchResults}
               isLoading={isSearching}

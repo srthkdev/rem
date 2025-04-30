@@ -5,6 +5,7 @@ import { ArxivPaper } from "@/lib/store/project-store";
 import { PaperSearchResult } from "@/components/paper-search-result";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PaperSearchGridProps {
   papers: ArxivPaper[];
@@ -51,12 +52,14 @@ export function PaperSearchGrid({
     <div className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         {papers.map((paper) => (
-          <PaperSearchResult
-            key={paper.id}
-            paper={paper}
-            isSelected={selectedPaper?.id === paper.id}
-            onSelect={onSelect}
-          />
+          <div key={paper.id}>
+            <PaperSearchResult
+              paper={paper}
+              isSelected={selectedPaper?.id === paper.id}
+              onSelect={onSelect}
+              size="small"
+            />
+          </div>
         ))}
       </div>
       

@@ -17,7 +17,7 @@ import {
   LayoutDashboard,
   Moon,
   Sun,
-  LaptopIcon
+  Laptop
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/lib/store/auth-store"
+import { useProjectStore } from "@/lib/store/project-store"
 import { toast } from "sonner"
 import { useSignOut } from "@/hooks/auth-hooks"
 
@@ -46,14 +47,6 @@ interface ProjectProps {
   daysAgo?: number
 }
 
-const RECENT_PROJECTS: ProjectProps[] = [
-  { id: "1", name: "AI-Powered Form Builder Names", route: "/project/1", lastMessage: "Last message 7 days ago" },
-  { id: "2", name: "Personalized Driving Instruction for All Levels", route: "/project/2", lastMessage: "Last message 11 days ago" },
-  { id: "3", name: "Estimating IQ from Conversation", route: "/project/3", lastMessage: "Last message 12 days ago" },
-  { id: "4", name: "AI Agent to Implement ArXiv Papers and Explain in Blog Posts", route: "/project/4", lastMessage: "Last message 15 days ago" },
-  { id: "5", name: "Scrabble-Style Word Game", route: "/project/5", lastMessage: "Last message 19 days ago" },
-  { id: "6", name: "Resolving Celery Import Errors in Python", route: "/project/6", lastMessage: "Last message 21 days ago" },
-]
 
 interface SidebarProps {
   onCollapse?: (collapsed: boolean) => void;
@@ -66,10 +59,11 @@ export function Sidebar({ onCollapse, collapsed, onToggleCollapse }: SidebarProp
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const { user, isAuthenticated } = useAuthStore()
+  const { projects } = useProjectStore()
   const signOut = useSignOut()
   const [isRecentsOpen, setIsRecentsOpen] = useState(true)
   const [isCollapsed, setIsCollapsed] = useState(collapsed ?? false)
-  const [recentProjects, setRecentProjects] = useState<ProjectProps[]>(RECENT_PROJECTS)
+  
   
   // Check if user is available, if not redirect to login
   useEffect(() => {
@@ -129,6 +123,11 @@ export function Sidebar({ onCollapse, collapsed, onToggleCollapse }: SidebarProp
   const toggleRecents = () => {
     setIsRecentsOpen(!isRecentsOpen);
   }
+
+  // Sort projects by creation date
+  const sortedProjects = [...projects].sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
   return (
     <>
@@ -342,44 +341,50 @@ export function Sidebar({ onCollapse, collapsed, onToggleCollapse }: SidebarProp
 
         {/* Recent Projects */}
         {isRecentsOpen && (
-          <ScrollArea className="flex-1 px-2">
-            <div className="flex flex-col space-y-1 py-1">
-              {recentProjects.length > 0 ? (
-                recentProjects.map((project) => (
-                  <Button
-                    key={project.id}
-                    asChild
-                    variant="ghost"
-                    className={cn(
-                      "flex flex-col items-start justify-start h-auto py-2 px-3 rounded-md",
-                      pathname === project.route 
-                        ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6] border-l-2 border-[#C96442] hover:text-[#262625] dark:hover:text-[#FAF9F6]" 
-                        : "hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 text-[#262625]/70 dark:text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6]"
-                    )}
-                  >
-                    <Link href={project.route} className="w-full text-left">
-                      <div className="truncate text-sm font-medium max-w-[180px]">
-                        {project.name.length > 35 ? project.name.substring(0, 32) + "..." : project.name}
-                      </div>
-                    </Link>
-                  </Button>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center py-6 px-3 text-center">
-                  <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC] mb-3">No projects yet</p>
-                  <Button 
-                    onClick={() => router.push('/project/new')}
-                    variant="outline" 
-                    size="sm"
-                    className="bg-transparent border-[#C96442] text-[#C96442] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#C96442]"
-                  >
-                    Create your first project
-                  </Button>
+              <ScrollArea className="flex-1 px-2">
+                <div className="flex flex-col space-y-1 py-1">
+                  {sortedProjects.length > 0 ? (
+                    sortedProjects.map((project) => (
+                      <Button
+                        key={project.id}
+                        asChild
+                        variant="ghost"
+                        className={cn(
+                          "flex flex-col items-start justify-start h-auto py-2 px-3 rounded-md",
+                          "border border-transparent hover:border-[#C96442]/30",
+                          pathname === `/project/${project.id}`
+                            ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6] border-l-2 border-[#C96442] hover:text-[#262625] dark:hover:text-[#FAF9F6]" 
+                            : "hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 text-[#262625]/70 dark:text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6]"
+                        )}
+                      >
+                        <Link href={`/project/${project.id}`} className="w-full text-left">
+                          <div className="truncate text-lg font-medium max-w-[220px] font-[family-name:var(--font-instrument-serif)]">
+                            {project.paper?.title || project.title}
+                          </div>
+                          {project.description && (
+                            <div className="truncate text-xs text-[#262625]/50 dark:text-[#BFB8AC]/70 max-w-[220px] mt-0.5">
+                              {project.description}
+                            </div>
+                          )}
+                        </Link>
+                      </Button>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-6 px-3 text-center">
+                      <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC] mb-3">No projects yet</p>
+                      <Button 
+                        onClick={() => router.push('/project/new')}
+                        variant="outline" 
+                        size="sm"
+                        className="bg-transparent border-[#C96442] text-[#C96442] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#C96442]"
+                      >
+                        Create your first project
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </ScrollArea>
-        )}
+              </ScrollArea>
+            )}
 
 
         {/* User Profile */}
@@ -433,7 +438,7 @@ export function Sidebar({ onCollapse, collapsed, onToggleCollapse }: SidebarProp
                 "text-[#262625] !data-[highlighted]:text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]",
                 theme === 'system' && "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10"
               )}>
-                <LaptopIcon className="mr-2 h-4 w-4" />
+                <Laptop className="mr-2 h-4 w-4" />
                 <span>System</span>
               </DropdownMenuItem>
               

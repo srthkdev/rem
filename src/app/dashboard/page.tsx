@@ -6,10 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Sidebar } from "@/components/sidebar"
 import { cn } from "@/lib/utils"
 import { useRequireAuth } from "@/hooks/auth-hooks"
+import { Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function DashboardPage() {
   const { user, isLoading } = useRequireAuth()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const router = useRouter()
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -46,8 +49,9 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 className="border-[#E3DACC] dark:border-[#BFB8AC]/30 hover:bg-[#E3DACC]/10 dark:hover:bg-[#BFB8AC]/10"
-                onClick={() => { window.location.href = "/project/new"; }}
+                onClick={() => router.push('/project/new')}
               >
+                <Plus className="h-4 w-4 mr-2" />
                 New Project
               </Button>
             </div>
