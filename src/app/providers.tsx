@@ -4,6 +4,7 @@ import { type ReactNode, useRef } from "react"
 import { Toaster } from "sonner"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { PDFProvider } from "@/lib/pdf-context"
 
 export function Providers({ children }: { children: ReactNode }) {
     const queryClientRef = useRef<QueryClient>(
@@ -20,9 +21,11 @@ export function Providers({ children }: { children: ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClientRef.current}>
-            {children}
-            <Toaster position="top-center" />
-            <ReactQueryDevtools initialIsOpen={false} />
+            <PDFProvider>
+                {children}
+                <Toaster position="top-center" />
+                <ReactQueryDevtools initialIsOpen={false} />
+            </PDFProvider>
         </QueryClientProvider>
     )
 }

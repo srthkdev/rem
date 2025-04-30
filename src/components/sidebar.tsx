@@ -68,7 +68,7 @@ export function Sidebar({ onCollapse, collapsed, onToggleCollapse }: SidebarProp
   const { user, isAuthenticated } = useAuthStore()
   const signOut = useSignOut()
   const [isRecentsOpen, setIsRecentsOpen] = useState(true)
-  const [isCollapsed, setIsCollapsed] = useState(true)
+  const [isCollapsed, setIsCollapsed] = useState(collapsed ?? false)
   const [recentProjects, setRecentProjects] = useState<ProjectProps[]>(RECENT_PROJECTS)
   
   // Check if user is available, if not redirect to login
@@ -86,10 +86,17 @@ export function Sidebar({ onCollapse, collapsed, onToggleCollapse }: SidebarProp
     }
   }, [collapsed]);
 
-  // Handle route changes to ensure sidebar is collapsed on navigation
+  // Add body class for collapsed state
   useEffect(() => {
-    setIsCollapsed(true);
-  }, [pathname]);
+    if (isCollapsed) {
+      document.body.classList.add('sidebar-collapsed');
+    } else {
+      document.body.classList.remove('sidebar-collapsed');
+    }
+    return () => {
+      document.body.classList.remove('sidebar-collapsed');
+    };
+  }, [isCollapsed]);
 
   // Notify parent component when sidebar is collapsed/expanded
   useEffect(() => {
@@ -113,7 +120,7 @@ export function Sidebar({ onCollapse, collapsed, onToggleCollapse }: SidebarProp
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
-    // If onToggleCollapse prop is provided, call it
+    
     if (onToggleCollapse) {
       onToggleCollapse();
     }

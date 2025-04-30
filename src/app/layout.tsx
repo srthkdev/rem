@@ -3,9 +3,11 @@ import { Work_Sans, Instrument_Serif } from "next/font/google"
 import { Toaster } from "sonner"
 import { AuthProvider } from "@/components/providers/auth-provider"
 
-import "@/styles/globals.css"
 
-import { Header } from "@/components/header"
+import "@/styles/globals.css"
+import "@/styles/layout.css"
+
+
 import type { ReactNode } from "react"
 import { Providers } from "@/components/providers"
 
@@ -44,6 +46,7 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning>
             <head>
                 <link rel="icon" href="/favicon.ico" sizes="any" />
+               
             </head>
             <body className={`${workSans.variable} ${instrumentSerif.variable} antialiased`} suppressHydrationWarning>
                 <AuthProvider>

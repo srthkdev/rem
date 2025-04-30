@@ -1,0 +1,82 @@
+/**
+ * Layout styles for different page types
+ */
+
+/* Common styles for all pages */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Base layout for most pages */
+.standard-layout {
+  max-width: 1200px;
+  margin: 0 auto 0 255px !important; /* Default to expanded sidebar margin */
+  padding: 24px;
+  width: calc(100% - 255px) !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Project detail page layout */
+.project-detail-layout {
+  position: fixed !important;
+  top: 0 !important;
+  left: 255px !important; /* Fixed position for expanded sidebar */
+  right: 0 !important;
+  bottom: 0 !important;
+  width: calc(100% - 255px) !important;
+  height: 100vh !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--background, #FAF9F6);
+  z-index: 10; /* Ensure it stays above other content */
+}
+
+/* Project detail content */
+.project-detail-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 3.5rem);
+}
+
+@media (min-width: 1024px) {
+  .project-detail-content {
+    flex-direction: row;
+  }
+}
+
+/* PDF container styles */
+.project-detail-layout .pdf-container {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.project-pdf-container {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  flex: 1 !important;
+}
+
+/* For collapsed sidebar - apply via JavaScript */
+body.sidebar-collapsed .standard-layout {
+  margin-left: 48px !important;
+  width: calc(100% - 48px) !important;
+}
+
+body.sidebar-collapsed .project-detail-layout {
+  left: 48px !important;
+  width: calc(100% - 48px) !important;
+} 

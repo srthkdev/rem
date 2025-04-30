@@ -1,180 +1,88 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Send, Paperclip } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useQuery, useMutation } from "@tanstack/react-query"
-import { cn } from "@/lib/utils"
-import { z } from "zod"
+import { PDFViewer } from "@/components/pdf-viewer"
+import { AIPaperAnalysis } from "@/components/ai-paper-analysis"
+import { useProjectStore } from "@/lib/store/project-store"
 import { toast } from "sonner"
-import { useAuthStore } from "@/lib/store/auth-store"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft, Clock, User, Maximize2, Minimize2, ExternalLink, Tag, FileText, Quote, Link2, MessageSquare } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ResizeablePanel, ResizeableHandle } from "@/components/ui/resizeable"
+import * as ResizeablePrimitive from "react-resizable-panels"
 
-// Zod schemas for type safety
-const MessageSchema = z.object({
-  id: z.string(),
-  content: z.string(),
-  isUser: z.boolean(),
-  timestamp: z.date(),
-})
-
-const ChatSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  messages: z.array(MessageSchema),
-})
-
-type Message = z.infer<typeof MessageSchema>
-type Chat = z.infer<typeof ChatSchema>
-
-// Mock API functions
-const fetchChat = async (id: string): Promise<Chat> => {
-  await new Promise(resolve => setTimeout(resolve, 600))
-  
-  return {
-    id,
-    title: getChatTitle(id),
-    messages: [
-      {
-        id: "1",
-        content: "Hello! How can I help you with your research today?",
-        isUser: false,
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-      },
-      {
-        id: "2",
-        content: "I need help understanding the recent advances in quantum computing.",
-        isUser: true,
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      },
-      {
-        id: "3",
-        content: "Quantum computing has seen significant advances in the last few years. The most notable developments include improvements in quantum error correction, increased qubit coherence times, and new applications in fields like cryptography and drug discovery. Would you like me to elaborate on any of these areas?",
-        isUser: false,
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      }
-    ]
-  }
-}
-
-const sendMessage = async (chatId: string, content: string): Promise<Message> => {
-  await new Promise(resolve => setTimeout(resolve, 800))
-  
-  // Mock response
-  return {
-    id: Date.now().toString(),
-    content: "Thank you for your message. I'm analyzing your query and will provide a comprehensive response shortly. In the meantime, is there anything specific about your topic you'd like me to focus on?",
-    isUser: false,
-    timestamp: new Date(),
-  }
-}
-
-// Helper function to get chat title based on ID
-function getChatTitle(id: string): string {
-  const titles: Record<string, string> = {
-    "1": "AI-Powered Form Builder Names",
-    "2": "Personalized Driving Instruction for All Levels",
-    "3": "Estimating IQ from Conversation",
-    "4": "AI Agent to Implement ArXiv Papers and Explain in Blog Posts",
-    "5": "Scrabble-Style Word Game",
-    "6": "Resolving Celery Import Errors in Python",
-  }
-  
-  return titles[id] || `Chat ${id}`
-}
-
-export default function ProjectChatPage() {
+export default function ProjectPage() {
   const params = useParams()
   const router = useRouter()
-  const { user } = useAuthStore()
   const id = params.id as string
-  const [message, setMessage] = useState("")
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [loading, setLoading] = useState(true)
+  const [expandedView, setExpandedView] = useState<"pdf" | "ai" | null>(null)
+  const [usePDFFallback, setUsePDFFallback] = useState(false)
+  const [useGoogleViewer, setUseGoogleViewer] = useState(false)
   
-  // Fetch chat data
-  const { data: chat, isLoading, isError } = useQuery({
-    queryKey: ['chat', id],
-    queryFn: () => fetchChat(id),
-  })
+  // Get project from store
+  const { getProject } = useProjectStore()
+  const project = getProject(id)
   
-  // Send message mutation
-  const mutation = useMutation({
-    mutationFn: (content: string) => sendMessage(id, content),
-    onSuccess: (newMessage) => {
-      // In a real app, you would update the chat data in the cache
-      // Here we're just clearing the input
-      setMessage("")
+  useEffect(() => {
+    if (!project && !loading) {
+      toast.error("Project not found")
+      router.push("/project")
+    } else {
+      setLoading(false)
+    }
+  }, [project, router, loading])
+  
+  // Auto-switch to direct view if we detect loading issues
+  useEffect(() => {
+    // After 5 seconds, if PDF is still struggling to load, auto-switch to direct view
+    if (project && project.paper && project.paper.pdfUrl && !usePDFFallback) {
+      const timer = setTimeout(() => {
+        setUsePDFFallback(true)
+      }, 5000)
       
-      // Scroll to bottom on new message
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-      }, 100)
-    },
-    onError: () => {
-      toast.error("Failed to send message. Please try again.")
+      return () => clearTimeout(timer)
     }
-  })
+  }, [project, usePDFFallback])
   
-  // Handle sending a message
-  const handleSendMessage = () => {
-    if (!message.trim()) return
-    
-    // Add optimistic update (would be handled by React Query in a real app)
-    const optimisticMessage: Message = {
-      id: `temp-${Date.now()}`,
-      content: message,
-      isUser: true, 
-      timestamp: new Date(),
+  // Update on initial load to ensure layout is correct
+  useEffect(() => {
+    function updateSidebarClass() {
+      const sidebar = document.querySelector('aside');
+      
+      // Directly update the body class based on sidebar state
+      if (sidebar && sidebar.classList.contains('sidebar-collapsed')) {
+        document.body.classList.add('sidebar-collapsed');
+      } else {
+        document.body.classList.remove('sidebar-collapsed');
+      }
     }
     
-    // Send the message
-    mutation.mutate(message)
+    // Run immediately on component mount
+    updateSidebarClass();
+  }, []);
+  
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
   }
   
-  // Handle key press (Enter to send)
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
-  
-  // Adjust textarea height as content changes
-  useEffect(() => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      textarea.style.height = "auto"
-      textarea.style.height = `${Math.max(40, textarea.scrollHeight)}px`
-    }
-  }, [message])
-  
-  // Scroll to bottom on initial load
-  useEffect(() => {
-    if (chat && !isLoading) {
-      messagesEndRef.current?.scrollIntoView()
-    }
-  }, [chat, isLoading])
-  
-  // Handle navigation back to chat list
   const handleBack = () => {
     router.push("/project")
   }
-  
-  // Get user's initials for avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map(word => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
+
+  const toggleExpandView = (section: "pdf" | "ai") => {
+    setExpandedView(expandedView === section ? null : section)
   }
   
-  if (isLoading) {
+  // Add paper categories if not present
+  const defaultCategories = ["Machine Learning", "Neural Networks", "Computer Vision"]
+  
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin h-8 w-8 border-4 border-[#C96442] border-t-transparent rounded-full"></div>
@@ -182,118 +90,187 @@ export default function ProjectChatPage() {
     )
   }
   
-  if (isError || !chat) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-red-500 mb-4">Error loading chat</p>
-        <Button onClick={handleBack} variant="outline">
-          Back to Chats
-        </Button>
-      </div>
-    )
+  if (!project) {
+    return null // This will be handled by the useEffect
   }
-
+  
   return (
-    <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-[#FAF9F6] dark:bg-[#262625]">
-      {/* Header */}
-      <header className="flex items-center px-4 py-3 border-b border-[#E3DACC] dark:border-[#BFB8AC]/30">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleBack}
-          className="mr-2 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/10"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span className="sr-only">Back</span>
-        </Button>
-        <h1 className="text-lg font-medium text-[#262625] dark:text-[#FAF9F6]">{chat.title}</h1>
+    <main className="project-detail-layout bg-[#FAF9F6] dark:bg-[#262625]">
+      {/* Header with project info */}
+      <header className="flex-shrink-0 border-b border-[#E3DACC] dark:border-[#BFB8AC]/30 bg-[#FAF9F6] dark:bg-[#262625] z-10 shadow-sm">
+        <div className="flex items-start p-3 gap-4">
+          {/* Left section: Back button, Title and Description */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleBack}
+                className="flex-shrink-0 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/10"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span className="sr-only">Back</span>
+              </Button>
+              <div className="min-w-0">
+                <h1 className="text-xl font-semibold text-[#262625] dark:text-[#FAF9F6] truncate">
+                  {project.title}
+                </h1>
+                {project.description && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <MessageSquare className="h-3.5 w-3.5 flex-shrink-0 text-[#C96442]" />
+                    <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC] font-[family-name:var(--font-work-sans)] truncate">
+                      {project.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Middle section: Categories */}
+          {project.paper?.categories && project.paper.categories.length > 0 && (
+            <div className="hidden md:flex flex-col items-center justify-center min-w-[200px]">
+              <div className="flex items-center gap-2">
+                <Tag className="h-3.5 w-3.5 text-[#C96442]" />
+                <div className="flex flex-wrap gap-2 text-xs justify-center">
+                  {project.paper.categories.map((category, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-0.5 rounded-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/20 text-[#262625]/70 dark:text-[#BFB8AC]"
+                    >
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Right section: Authors and Date */}
+          {project.paper && (
+            <div className="hidden lg:flex flex-col items-end gap-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4 text-[#C96442]" />
+                <span>{formatDate(new Date(project.paper.publishedDate))}</span>
+              </div>
+              {project.paper.authors && project.paper.authors.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <User className="h-4 w-4 text-[#C96442]" />
+                  <div className="max-w-[300px] truncate">
+                    {project.paper.authors.slice(0, 2).join(", ")}
+                    {project.paper.authors.length > 2 && " et al."}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </header>
       
-      {/* Chat messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {chat.messages.map((msg) => (
-          <div 
-            key={msg.id}
+      {/* Main Content Area - Takes remaining height */}
+      <div className="project-detail-content">
+        <ResizeablePrimitive.PanelGroup
+          direction="horizontal"
+          className="h-full"
+        >
+          {/* PDF Viewer */}
+          <ResizeablePanel 
+            defaultSize={60}
+            minSize={30}
             className={cn(
-              "flex items-start gap-3 max-w-3xl",
-              msg.isUser ? "ml-auto" : ""
+              "h-full border-r border-[#E3DACC] dark:border-[#BFB8AC]/30",
+              expandedView === "pdf" ? "flex-1" : (
+                expandedView === "ai" ? "hidden lg:block lg:w-0 overflow-hidden" : ""
+              )
             )}
           >
-            {!msg.isUser && (
-              <Avatar className="h-8 w-8 mt-1">
-                <AvatarFallback className="bg-[#C96442] text-[#FAF9F6] text-xs">
-                  REM
-                </AvatarFallback>
-              </Avatar>
-            )}
-            
-            <Card className={cn(
-              "p-3 shadow-sm",
-              msg.isUser 
-                ? "bg-[#C96442] text-[#FAF9F6]" 
-                : "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6]"
-            )}>
-              <CardContent className="p-0">
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-                <div className={cn(
-                  "mt-1 text-xs",
-                  msg.isUser ? "text-[#FAF9F6]/70" : "text-[#262625]/50 dark:text-[#FAF9F6]/50"
-                )}>
-                  {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </CardContent>
-            </Card>
-            
-            {msg.isUser && (
-              <Avatar className="h-8 w-8 mt-1">
-                <AvatarFallback className="bg-[#262625] dark:bg-[#FAF9F6] text-[#FAF9F6] dark:text-[#262625] text-xs">
-                  {user?.name ? getInitials(user.name) : user?.email ? getInitials(user.email.split('@')[0]) : "U"}
-                </AvatarFallback>
-              </Avatar>
-            )}
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-      
-      {/* Input area */}
-      <div className="p-4 border-t border-[#E3DACC] dark:border-[#BFB8AC]/30">
-        <div className="relative flex items-end max-w-3xl mx-auto">
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Write a message..."
-            className="min-h-[40px] max-h-[200px] pr-12 border-[#E3DACC] dark:border-[#BFB8AC]/30 focus:ring-[#C96442] bg-transparent text-[#262625] dark:text-[#FAF9F6] resize-none"
-          />
-          <div className="absolute right-2 bottom-2 flex items-center gap-2">
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6] hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/10"
-            >
-              <Paperclip className="h-4 w-4" />
-              <span className="sr-only">Attach</span>
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              disabled={!message.trim() || mutation.isPending}
-              onClick={handleSendMessage}
-              className="h-8 w-8 rounded-full bg-[#C96442] text-[#FAF9F6] hover:bg-[#C96442]/90 disabled:opacity-50"
-            >
-              {mutation.isPending ? (
-                <div className="h-4 w-4 border-2 border-[#FAF9F6] border-t-transparent rounded-full animate-spin" />
+            <div className="relative flex flex-col h-full w-full overflow-hidden">
+              
+              
+              {project.paper?.pdfUrl ? (
+                usePDFFallback ? (
+                  <div className="relative h-full w-full bg-white flex flex-col">
+                    <div className="absolute top-2 left-2 z-10">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setUseGoogleViewer(!useGoogleViewer)}
+                        className="h-8 px-2 bg-white/90 backdrop-blur-sm dark:bg-[#262625]/90 border-[#E3DACC] dark:border-[#BFB8AC]/30 shadow-sm"
+                      >
+                        {useGoogleViewer ? "Use Direct View" : "Try Google Viewer"}
+                      </Button>
+                    </div>
+                    {useGoogleViewer ? (
+                      <iframe 
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(project.paper?.pdfUrl || '')}&embedded=true`}
+                        className="w-full h-full border-0"
+                        title={`${project.title} - Google Docs Viewer`}
+                      />
+                    ) : (
+                      <iframe
+                        src={project.paper?.pdfUrl}
+                        className="w-full h-full border-0"
+                        title={`${project.title} - Direct PDF View`}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-full relative w-full">
+                    <div className="absolute top-2 left-2 z-10">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setUsePDFFallback(true)}
+                        className="h-8 px-2 bg-white/90 backdrop-blur-sm dark:bg-[#262625]/90 border-[#E3DACC] dark:border-[#BFB8AC]/30 shadow-sm"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Use Direct View
+                      </Button>
+                    </div>
+                    {(expandedView === "pdf" || (!expandedView && expandedView !== "ai")) && (
+                      <PDFViewer 
+                        url={project.paper?.pdfUrl} 
+                        onFallbackRequest={() => setUsePDFFallback(true)}
+                        className="w-full h-full"
+                      />
+                    )}
+                  </div>
+                )
               ) : (
-                <Send className="h-4 w-4" />
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-[#262625]/70 dark:text-[#BFB8AC]">
+                    No PDF available for this project
+                  </p>
+                </div>
               )}
-              <span className="sr-only">Send</span>
-            </Button>
-          </div>
-        </div>
+            </div>
+          </ResizeablePanel>
+
+          {!expandedView && (
+            <ResizeableHandle withHandle />
+          )}
+          
+          {/* AI Analysis */}
+          <ResizeablePanel 
+            defaultSize={40}
+            minSize={30}
+            className={cn(
+              "h-full",
+              expandedView === "ai" ? "flex-1" : (
+                expandedView === "pdf" ? "hidden lg:block lg:w-0 overflow-hidden" : ""
+              )
+            )}
+          >
+            <div className="relative flex flex-col h-full w-full overflow-hidden">
+              
+              <AIPaperAnalysis 
+                userQuery={project.description} 
+                paperTitle={project.paper ? project.paper.title : project.title} 
+              />
+            </div>
+          </ResizeablePanel>
+        </ResizeablePrimitive.PanelGroup>
       </div>
-    </div>
+    </main>
   )
 } 

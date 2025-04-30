@@ -1,119 +1,159 @@
 "use client"
 
-import React, { useRef, useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
+import { v4 as uuidv4 } from "uuid"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useMutation } from "@tanstack/react-query"
-import { IntroducingRemAI } from "@/components/introducing-rem-ai";
-import { ArxivSearchInput } from "@/components/ui/arxiv-search-input"
+import { IntroducingRemAI } from "@/components/introducing-rem-ai"
+import { searchArxivPapers } from "@/lib/services/arxiv-service"
+import { ArxivPaper, useProjectStore } from "@/lib/store/project-store"
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
+import { PaperSearchGrid } from "@/components/paper-search-grid"
+import { Search, X } from "lucide-react"
 
-// Placeholder texts for project input
+// Placeholder texts for paper search input
 const placeholders = [
-  "What research topic are you interested in exploring?",
-  "What scientific question would you like to investigate?",
-  "Describe the topic you'd like to research...",
-  "What field of study are you focusing on?",
-  "What specific problem are you trying to solve?",
-];
+  "Search for papers on quantum computing...",
+  "Find research about machine learning...",
+  "Look up papers on climate change...",
+  "Search for neural networks...",
+  "Explore research in computer vision...",
+  "Find papers on genomics and DNA sequencing...",
+]
 
-// Project schema for form validation
-const projectSchema = z.object({
-  description: z.string().min(10, {
-    message: "Project description must be at least 10 characters.",
+// Search schema for validation
+const searchSchema = z.object({
+  query: z.string().min(3, {
+    message: "Search query must be at least 3 characters.",
   }),
 })
 
-type ProjectFormValues = z.infer<typeof projectSchema>
-
-// Mock function to create a project - replace with actual API call
-const createProject = async (data: ProjectFormValues): Promise<{ id: string }> => {
-  // This would be an API call to create the project
-  console.log("Creating project with data:", data)
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  // Return mock project ID
-  return { id: Math.random().toString(36).substring(2, 9) }
-}
+type SearchFormValues = z.infer<typeof searchSchema>
 
 export default function NewProjectPage() {
   const router = useRouter()
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [useArxivSearch, setUseArxivSearch] = useState(false)
-  
-  // Form setup with zod validation
-  const form = useForm<ProjectFormValues>({
-    resolver: zodResolver(projectSchema),
-    defaultValues: {
-      description: "",
+  const queryClient = useQueryClient()
+  const [query, setQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
+  const [userInput, setUserInput] = useState("")
+
+  // Access project store
+  const {
+    searchResults,
+    setSearchResults,
+    selectedPaper,
+    setSelectedPaper,
+    addProject,
+    clearSearchResults,
+  } = useProjectStore()
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (query.length >= 3) {
+        setDebouncedQuery(query)
+        setUserInput(query) // Save user input for project creation
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [query])
+
+  // Search query for ArXiv papers
+  const { isLoading: isSearching, data: searchData } = useQuery({
+    queryKey: ["arxivSearch", debouncedQuery],
+    queryFn: async () => {
+      try {
+        if (debouncedQuery.length < 3) return []
+        const papers = await searchArxivPapers(debouncedQuery)
+        return papers
+      } catch (error) {
+        console.error("Error searching papers:", error)
+        toast.error("Failed to search papers. Please try again.")
+        return []
+      }
     },
+    enabled: debouncedQuery.length >= 3,
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: false,
   })
   
-  // Get values and state from form
-  const { handleSubmit, formState: { errors }, setValue, watch, register } = form
-  const description = watch("description")
-  
-  // Project creation mutation with TanStack Query
-  const mutation = useMutation({
-    mutationFn: createProject,
-    onSuccess: (data) => {
-      toast.success("Project created successfully!")
-      router.push(`/project/${data.id}`)
+  // Update search results when data changes
+  useEffect(() => {
+    if (searchData) {
+      setSearchResults(searchData)
+    }
+  }, [searchData, setSearchResults])
+
+  // Create project mutation
+  const createProjectMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedPaper) {
+        throw new Error("No paper selected")
+      }
+
+      // Create a new project with the selected paper
+      const projectId = uuidv4()
+      const newProject = {
+        id: projectId,
+        title: selectedPaper.title,
+        description: userInput,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        paper: selectedPaper,
+        lastMessage: "I've analyzed this paper and I'm ready to help with your research.",
+      }
+
+      addProject(newProject)
+      return projectId
     },
-    onError: (error) => {
-      console.error("Error creating project:", error)
+    onSuccess: (projectId) => {
+      toast.success("Project created successfully!")
+      queryClient.invalidateQueries({ queryKey: ["projects"] })
+      router.push(`/project/${projectId}`)
+    },
+    onError: () => {
       toast.error("Failed to create project. Please try again.")
     },
   })
-  
-  // Handle form submission
-  const onSubmit = (data: ProjectFormValues) => {
-    mutation.mutate(data)
-  }
-  
-  // Handle textarea height adjustment
-  const adjustTextareaHeight = () => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      textarea.style.height = 'auto'
-      const newHeight = Math.max(54, textarea.scrollHeight)
-      textarea.style.height = `${newHeight}px`
-    }
-  }
-  
-  // Update textarea height when content changes
-  React.useEffect(() => {
-    adjustTextareaHeight()
-  }, [description])
-  
-  // Handle enter key press
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit(onSubmit)()
+
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    setQuery(newValue)
+    
+    // Clear results if input is empty
+    if (!newValue.trim()) {
+      clearSearchResults()
     }
   }
 
-  // Handle input change from the PlaceholdersAndVanishInput
-  const handleVanishInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue("description", e.target.value);
-  };
-
-  // Handle form submit from VanishInput
-  const handleVanishInputSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (description && description.length >= 10) {
-      handleSubmit(onSubmit)();
+  // Handle form submit
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (query.length >= 3) {
+      setDebouncedQuery(query)
+      setUserInput(query)
     }
-  };
+  }
+
+  // Handle paper selection
+  const handleSelectPaper = (paper: ArxivPaper) => {
+    setSelectedPaper(paper)
+  }
+
+  // Handle project creation
+  const handleCreateProject = () => {
+    if (selectedPaper) {
+      createProjectMutation.mutate()
+    } else {
+      toast.error("Please select a paper first")
+    }
+  }
 
   return (
     <div className="px-4 pt-16 pb-8 max-w-7xl mx-auto w-full relative">
@@ -121,35 +161,46 @@ export default function NewProjectPage() {
         <IntroducingRemAI />
         <h2 className="font-[family-name:var(--font-instrument-serif)] text-5xl md:text-7xl font-bold text-[#C96442] pt-10">Rem: </h2>
         <h3 className="font-[family-name:var(--font-instrument-serif)] text-5xl md:text-7xl font-bold text-white">Research Made Accessible</h3>
-       
       </div>
       
-      <div className="max-w-3xl mx-auto mt-10 mb-8">
-      
-        {useArxivSearch ? (
+      <div className="max-w-5xl mx-auto mt-10 mb-8">
+        {/* Search Input */}
+        <div className="relative mb-6">
           <div className="relative">
-            <ArxivSearchInput />
-            <div className="mt-4 text-center">
-              <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                Find and select a paper to start your research project
-              </p>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="relative mb-4">
-              <PlaceholdersAndVanishInput 
-                placeholders={placeholders}
-                onChange={handleVanishInputChange}
-                onSubmit={handleVanishInputSubmit}
-              />
-            </div>
-            
-            {errors.description && (
-              <p className="text-red-500 text-sm mt-2 ml-4">{errors.description.message}</p>
+            <PlaceholdersAndVanishInput 
+              placeholders={placeholders}
+              onChange={handleInputChange}
+              onSubmit={handleSubmit}
+            />
+            {query && (
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  setQuery("")
+                  clearSearchResults()
+                }}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6] hover:bg-transparent"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             )}
-            
-          </form>
+          </div>
+        </div>
+        
+        {/* Search Results Grid */}
+        {(debouncedQuery.length >= 3 || searchResults.length > 0) && (
+          <div className={cn("mt-6", debouncedQuery ? "opacity-100" : "opacity-0 pointer-events-none")}>
+            <PaperSearchGrid
+              papers={searchResults}
+              isLoading={isSearching}
+              selectedPaper={selectedPaper}
+              onSelect={handleSelectPaper}
+              onCreateProject={handleCreateProject}
+              isCreating={createProjectMutation.isPending}
+            />
+          </div>
         )}
         
         <div className="mt-8 flex items-center justify-center gap-4">
