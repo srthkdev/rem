@@ -5,20 +5,19 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { 
-  signInWithEmail, 
-  signInWithGoogle, 
-  signUpWithEmail, 
   type SignInInput, 
-  type SignUpInput 
+  type SignUpInput,
+  authClient
 } from "@/lib/auth-client";
 import { signInSchema, signUpSchema } from "@/lib/validator";
+import { useAuthStore } from "@/lib/store/auth-store";
+import { useSignIn, useSignUp, useGoogleSignIn } from "@/hooks/auth-hooks";
+import { useQuery } from "@tanstack/react-query";
 
 // Sign-in form component
-function SignInForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => Promise<void>, googleLoading: boolean }) {
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
+function SignInForm({ redirectTo = '/project/new' }: { redirectTo?: string }) {
     const { register, handleSubmit, formState: { errors } } = useForm<SignInInput>({
         resolver: zodResolver(signInSchema),
         defaultValues: {
@@ -27,21 +26,11 @@ function SignInForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
         },
     });
 
-    const onSubmit = async (data: SignInInput) => {
-        setLoading(true);
-        try {
-            const result = await signInWithEmail(data);
-            if (result.success) {
-                toast.success("Successfully signed in!");
-                router.push('/dashboard');
-            } else {
-                toast.error(result.error || "Failed to sign in");
-            }
-        } catch (error) {
-            toast.error("Failed to sign in");
-        } finally {
-            setLoading(false);
-        }
+    const signIn = useSignIn();
+    const googleSignIn = useGoogleSignIn();
+    
+    const onSubmit = (data: SignInInput) => {
+        signIn.mutate(data);
     };
 
     return (
@@ -59,7 +48,7 @@ function SignInForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                             errors.email ? 'border-red-500' : 'border-[#E3DACC]'
                         }`}
                         placeholder="Enter your email"
-                        disabled={loading || googleLoading}
+                        disabled={signIn.isPending || googleSignIn.isLoading}
                     />
                     {errors.email && (
                         <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
@@ -83,7 +72,7 @@ function SignInForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                             errors.password ? 'border-red-500' : 'border-[#E3DACC]'
                         }`}
                         placeholder="Enter your password"
-                        disabled={loading || googleLoading}
+                        disabled={signIn.isPending || googleSignIn.isLoading}
                     />
                     {errors.password && (
                         <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
@@ -92,10 +81,10 @@ function SignInForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                 
                 <button 
                     type="submit"
-                    disabled={loading || googleLoading}
+                    disabled={signIn.isPending || googleSignIn.isLoading}
                     className="w-full py-2.5 px-4 bg-[#C96442] text-white rounded-md hover:bg-[#C96442]/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                    {loading ? "Signing in..." : "Sign In"}
+                    {signIn.isPending ? "Signing in..." : "Sign In"}
                 </button>
             </form>
 
@@ -108,8 +97,8 @@ function SignInForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                 
                 <button
                     type="button"
-                    onClick={onGoogleSignIn}
-                    disabled={loading || googleLoading}
+                    onClick={() => googleSignIn.signIn()}
+                    disabled={signIn.isPending || googleSignIn.isLoading}
                     className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-[#E3DACC] rounded-md hover:bg-[#E3DACC]/10 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -133,9 +122,7 @@ function SignInForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
 }
 
 // Sign-up form component
-function SignUpForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => Promise<void>, googleLoading: boolean }) {
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
+function SignUpForm({ redirectTo = '/project/new' }: { redirectTo?: string }) {
     const { register, handleSubmit, formState: { errors } } = useForm<SignUpInput>({
         resolver: zodResolver(signUpSchema),
         defaultValues: {
@@ -145,21 +132,11 @@ function SignUpForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
         },
     });
 
-    const onSubmit = async (data: SignUpInput) => {
-        setLoading(true);
-        try {
-            const result = await signUpWithEmail(data);
-            if (result.success) {
-                toast.success("Account created successfully!");
-                router.push('/dashboard');
-            } else {
-                toast.error(result.error || "Failed to create account");
-            }
-        } catch (error) {
-            toast.error("Failed to create account");
-        } finally {
-            setLoading(false);
-        }
+    const signUp = useSignUp();
+    const googleSignIn = useGoogleSignIn();
+    
+    const onSubmit = (data: SignUpInput) => {
+        signUp.mutate(data);
     };
 
     return (
@@ -177,7 +154,7 @@ function SignUpForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                             errors.username ? 'border-red-500' : 'border-[#E3DACC]'
                         }`}
                         placeholder="Enter your username"
-                        disabled={loading || googleLoading}
+                        disabled={signUp.isPending || googleSignIn.isLoading}
                     />
                     {errors.username && (
                         <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>
@@ -196,7 +173,7 @@ function SignUpForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                             errors.email ? 'border-red-500' : 'border-[#E3DACC]'
                         }`}
                         placeholder="Enter your email"
-                        disabled={loading || googleLoading}
+                        disabled={signUp.isPending || googleSignIn.isLoading}
                     />
                     {errors.email && (
                         <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
@@ -215,7 +192,7 @@ function SignUpForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                             errors.password ? 'border-red-500' : 'border-[#E3DACC]'
                         }`}
                         placeholder="Enter your password"
-                        disabled={loading || googleLoading}
+                        disabled={signUp.isPending || googleSignIn.isLoading}
                     />
                     {errors.password && (
                         <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
@@ -224,10 +201,10 @@ function SignUpForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                 
                 <button 
                     type="submit"
-                    disabled={loading || googleLoading}
+                    disabled={signUp.isPending || googleSignIn.isLoading}
                     className="w-full py-2.5 px-4 bg-[#C96442] text-white rounded-md hover:bg-[#C96442]/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                    {loading ? "Creating account..." : "Sign Up"}
+                    {signUp.isPending ? "Creating account..." : "Sign Up"}
                 </button>
             </form>
 
@@ -240,8 +217,8 @@ function SignUpForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
                 
                 <button
                     type="button"
-                    onClick={onGoogleSignIn}
-                    disabled={loading || googleLoading}
+                    onClick={() => googleSignIn.signIn()}
+                    disabled={signUp.isPending || googleSignIn.isLoading}
                     className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-[#E3DACC] rounded-md hover:bg-[#E3DACC]/10 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -268,39 +245,28 @@ function SignUpForm({ onGoogleSignIn, googleLoading }: { onGoogleSignIn: () => P
 export function AuthView({ pathname }: { pathname: string }) {
     const isSignIn = pathname === "sign-in";
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
+    const searchParams = useSearchParams();
+    const redirectTo = searchParams?.get('redirectTo') || '/project/new';
+    const { setUser } = useAuthStore();
     
-    // Check for existing session on mount and redirect if logged in
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const storedSession = localStorage.getItem('user-session');
-            if (storedSession) {
-                try {
-                    const session = JSON.parse(storedSession);
-                    if (session && session.isAuthenticated) {
-                        console.log("User already logged in, redirecting to dashboard");
-                        router.push('/dashboard');
-                    }
-                } catch (error) {
-                    console.error("Error parsing stored session:", error);
-                }
+    // Check for existing session using React Query for better caching and loading states
+    const { isLoading: sessionLoading } = useQuery({
+        queryKey: ['auth-session'],
+        queryFn: async () => {
+            const session = await authClient.getSession();
+            if (session.user) {
+                // Update the auth store
+                setUser(session.user);
+                console.log("User already logged in, redirecting to project page");
+                // Redirect to the redirectTo param or project/new by default
+                router.push(redirectTo);
+                return session;
             }
-        }
-    }, [router]);
-    
-    // Check for error query param on load
-    const handleGoogleSignIn = async () => {
-        try {
-            setIsLoading(true);
-            // Google OAuth will redirect, so we don't need to handle the result
-            await signInWithGoogle();
-            // The following code won't execute due to redirect
-        } catch (error) {
-            console.error("Google sign in error:", error);
-            setIsLoading(false);
-            toast.error("Failed to sign in with Google");
-        }
-    };
+            return session;
+        },
+        // Don't refetch on window focus
+        refetchOnWindowFocus: false,
+    });
 
     // If we're on the sign-in page, check for error query param
     useEffect(() => {
@@ -326,6 +292,16 @@ export function AuthView({ pathname }: { pathname: string }) {
         }
     }, []);
 
+    // Show loading state while checking session
+    if (sessionLoading) {
+        return (
+            <div className="flex grow flex-col items-center justify-center gap-4 p-4 bg-[#FAF9F6] dark:bg-[#262625]">
+                <div className="animate-spin h-8 w-8 border-4 border-[#C96442] border-t-transparent rounded-full"></div>
+                <p className="text-sm text-muted-foreground">Checking authentication...</p>
+            </div>
+        );
+    }
+
     return (
         <main className="flex grow flex-col items-center justify-center gap-4 p-4 bg-[#FAF9F6] dark:bg-[#262625]">
             <div className="w-full max-w-md mx-auto px-8 py-12 rounded-lg bg-white dark:bg-[#1A1A1A] shadow-sm">
@@ -349,9 +325,9 @@ export function AuthView({ pathname }: { pathname: string }) {
                 </div>
                 
                 {isSignIn ? (
-                    <SignInForm onGoogleSignIn={handleGoogleSignIn} googleLoading={isLoading} />
+                    <SignInForm redirectTo={redirectTo} />
                 ) : (
-                    <SignUpForm onGoogleSignIn={handleGoogleSignIn} googleLoading={isLoading} />
+                    <SignUpForm redirectTo={redirectTo} />
                 )}
             </div>
 

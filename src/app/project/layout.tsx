@@ -1,25 +1,15 @@
 "use client"
 
-import React, { ReactNode, useEffect, useState } from "react"
-import { useAuthStore } from "@/lib/store/auth-store"
-import { useRouter } from "next/navigation"
+import React, { ReactNode, useState } from "react"
 import { Sidebar } from "@/components/sidebar"
-import { toast } from "sonner"
 import { useTheme } from "next-themes"
+import { cn } from "@/lib/utils"
+import { useRequireAuth } from "@/hooks/auth-hooks"
 
 export default function ProjectLayout({ children }: { children: ReactNode }) {
-  const router = useRouter()
-  const { user, isLoading } = useAuthStore()
+  const { user, isLoading } = useRequireAuth()
   const { theme } = useTheme()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-
-  useEffect(() => {
-    // If not loading and no user, redirect to login
-    if (!isLoading && !user) {
-      toast.error("Please sign in to access this page")
-      router.push("/auth/sign-in")
-    }
-  }, [isLoading, user, router])
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -30,14 +20,28 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
     )
   }
 
-  // If no user and not loading, don't render anything (will redirect)
-  if (!user && !isLoading) return null
-
   return (
-    <div className="flex min-h-screen h-screen overflow-hidden bg-[#FAF9F6] dark:bg-[#262625] text-[#262625] dark:text-[#FAF9F6]">
-      <Sidebar onCollapse={setSidebarCollapsed} />
-      <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'pl-0' : 'pl-64'} h-full overflow-hidden`}>
-        <main className="p-6 h-full overflow-auto">{children}</main>
+    <div className={cn(
+      "relative min-h-screen",
+      "bg-[#FAF9F6] dark:bg-[#262625]",
+      "flex flex-col" 
+    )}>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <Sidebar 
+          collapsed={sidebarCollapsed} 
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+        
+        {/* Main Content Area */}
+        <main className={cn(
+          "flex-1 overflow-auto p-6",
+          sidebarCollapsed ? "ml-20" : "ml-64"
+        )}>
+          <div className="mx-auto w-full max-w-6xl">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   )

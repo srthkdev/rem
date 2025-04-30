@@ -95,13 +95,13 @@ export async function GET(request: NextRequest) {
             if (window.authStore && window.authStore.setUser) {
               window.authStore.setUser(${JSON.stringify(user)});
             }
-            // Redirect to dashboard
-            window.location.href = "/dashboard";
+            // Redirect to project/new instead of dashboard
+            window.location.href = "/project/new";
           </script>
         </head>
         <body>
           <h1 style="font-family: system-ui, sans-serif; text-align: center; margin-top: 40px;">Authentication successful</h1>
-          <p style="font-family: system-ui, sans-serif; text-align: center;">Redirecting to your dashboard...</p>
+          <p style="font-family: system-ui, sans-serif; text-align: center;">Redirecting to your project page...</p>
           <div style="display: flex; justify-content: center; margin-top: 20px;">
             <div style="width: 40px; height: 40px; border: 4px solid rgba(0, 0, 0, 0.1); border-radius: 50%; border-top: 4px solid #C96442; animation: spin 1s linear infinite;"></div>
           </div>

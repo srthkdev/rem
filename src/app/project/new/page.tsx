@@ -125,21 +125,6 @@ export default function NewProjectPage() {
       </div>
       
       <div className="max-w-3xl mx-auto mt-10 mb-8">
-        <div className="flex items-center justify-center gap-4 mb-8">
-       
-          
-          <Button 
-            type="button"
-            variant={useArxivSearch ? "default" : "outline"}
-            
-            className={cn(
-              useArxivSearch ? "bg-[#C96442] hover:bg-[#C96442]/90 text-[#FAF9F6]" : 
-              "border-[#E3DACC] dark:border-[#BFB8AC]/30 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/10"
-            )}
-          >
-            Create a New Project
-          </Button>
-        </div>
       
         {useArxivSearch ? (
           <div className="relative">

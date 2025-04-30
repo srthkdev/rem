@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/lib/store/auth-store"
 import { toast } from "sonner"
-import { signOut } from "@/lib/auth-client"
+import { useSignOut } from "@/hooks/auth-hooks"
 
 interface ProjectProps {
   id: string
@@ -57,16 +57,39 @@ const RECENT_PROJECTS: ProjectProps[] = [
 
 interface SidebarProps {
   onCollapse?: (collapsed: boolean) => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export function Sidebar({ onCollapse }: SidebarProps) {
+export function Sidebar({ onCollapse, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { theme, setTheme } = useTheme()
-  const { user } = useAuthStore()
+  const { user, isAuthenticated } = useAuthStore()
+  const signOut = useSignOut()
   const [isRecentsOpen, setIsRecentsOpen] = useState(true)
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
   const [recentProjects, setRecentProjects] = useState<ProjectProps[]>(RECENT_PROJECTS)
+  
+  // Check if user is available, if not redirect to login
+  useEffect(() => {
+    if (!isAuthenticated && typeof window !== 'undefined') {
+      console.log("Sidebar: No authenticated user found, redirecting to login");
+      router.push('/auth/sign-in');
+    }
+  }, [isAuthenticated, router]);
+  
+  // Update internal state when collapsed prop changes
+  useEffect(() => {
+    if (collapsed !== undefined) {
+      setIsCollapsed(collapsed);
+    }
+  }, [collapsed]);
+
+  // Handle route changes to ensure sidebar is collapsed on navigation
+  useEffect(() => {
+    setIsCollapsed(true);
+  }, [pathname]);
 
   // Notify parent component when sidebar is collapsed/expanded
   useEffect(() => {
@@ -84,22 +107,16 @@ export function Sidebar({ onCollapse }: SidebarProps) {
       .slice(0, 2)
   }
 
-  const handleSignOut = async () => {
-    try {
-      const result = await signOut()
-      if (result.success) {
-        toast.success("Signed out successfully")
-        router.push("/")
-      } else {
-        toast.error("Failed to sign out")
-      }
-    } catch (error) {
-      toast.error("Failed to sign out")
-    }
+  const handleSignOut = () => {
+    signOut.mutate()
   }
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+    // If onToggleCollapse prop is provided, call it
+    if (onToggleCollapse) {
+      onToggleCollapse();
+    }
   }
 
   const toggleRecents = () => {
@@ -114,8 +131,8 @@ export function Sidebar({ onCollapse }: SidebarProps) {
         size="icon"
         onClick={toggleSidebar}
         className={cn(
-          "fixed left-0 top-4 z-50 h-8 w-8 rounded-full transition-all duration-300",
-          isCollapsed ? "left-4" : "left-56",
+          "fixed left-0 top-2 z-50 h-8 w-8 rounded-full transition-all duration-300",
+          isCollapsed ? "left-8" : "left-56",
           "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 hover:bg-[#E3DACC]/50 dark:hover:bg-[#BFB8AC]/30 text-[#262625] dark:text-[#FAF9F6] hover:text-[#262625] dark:hover:text-[#FAF9F6]"
         )}
       >
@@ -127,37 +144,154 @@ export function Sidebar({ onCollapse }: SidebarProps) {
         <span className="sr-only">Toggle sidebar</span>
       </Button>
 
+      {/* Collapsed Sidebar */}
+      {isCollapsed && (
+        <div className="fixed left-0 top-0 z-40 flex flex-col items-center w-12 h-screen bg-[#FAF9F6] dark:bg-[#262625] border-r border-[#E3DACC] dark:border-[#BFB8AC]/30">
+          {/* Logo */}
+          <div className="flex items-center justify-center h-14 border-b w-full border-[#E3DACC] dark:border-[#BFB8AC]/30">
+            <Link href="/" className="flex items-center justify-center">
+              <span className="font-[family-name:var(--font-instrument-serif)] text-2xl font-bold text-[#C96442]">R</span>
+            </Link>
+          </div>
+          
+          {/* Main icons */}
+          <div className="flex flex-col items-center space-y-3 w-full mt-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push('/project/new')}
+              className={cn(
+                "h-8 w-8 rounded-full",
+                pathname === '/project/new' ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10" : "",
+                "text-[#262625]/70 dark:text-[#BFB8AC] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
+              )}
+              title="New Project"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push('/project')}
+              className={cn(
+                "h-8 w-8 rounded-full",
+                pathname === '/project' || pathname.startsWith('/project/') && pathname !== '/project/new' 
+                  ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10" : "",
+                "text-[#262625]/70 dark:text-[#BFB8AC] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
+              )}
+              title="Projects"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push('/dashboard')}
+              className={cn(
+                "h-8 w-8 rounded-full",
+                pathname === '/dashboard' ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10" : "",
+                "text-[#262625]/70 dark:text-[#BFB8AC] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
+              )}
+              title="Dashboard"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* User Avatar */}
+          <div className="mt-auto mb-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-full overflow-hidden hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10"
+                >
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={user?.image || undefined} />
+                    <AvatarFallback className="bg-[#C96442] text-[#FAF9F6] text-xs">
+                      {user?.name ? getInitials(user.name) : user?.email ? getInitials(user.email.split('@')[0]) : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-[#FAF9F6] dark:bg-[#262625] border-[#E3DACC] dark:border-[#BFB8AC]/30 text-[#262625] dark:text-[#FAF9F6]">
+                <DropdownMenuItem onClick={() => router.push('/settings')} className="text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/profile')} className="text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10">
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <Separator className="my-1 bg-[#E3DACC] dark:bg-[#BFB8AC]/30" />
+                <DropdownMenuItem onClick={() => setTheme('light')} className="text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10">
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Light</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')} className="text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10">
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Dark</span>
+                </DropdownMenuItem>
+                <Separator className="my-1 bg-[#E3DACC] dark:bg-[#BFB8AC]/30" />
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-500 dark:text-red-400 hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      )}
+
+      {/* Expanded Sidebar */}
       <div className={cn(
         "flex flex-col h-screen bg-[#FAF9F6] dark:bg-[#262625] text-[#262625] dark:text-[#FAF9F6] border-r border-[#E3DACC] dark:border-[#BFB8AC]/30",
         "fixed left-0 top-0 z-40 transition-all duration-300 ease-in-out",
         isCollapsed ? "w-0 opacity-0 -translate-x-full" : "w-64 opacity-100 translate-x-0"
       )}>
         {/* Sidebar Header - REM Logo */}
-        <div className="flex items-center h-14 px-5 border-b border-[#E3DACC] dark:border-[#BFB8AC]/30">
+        <div className="flex items-center h-12 px-5 border-b border-[#E3DACC] dark:border-[#BFB8AC]/30">
           <Link href="/" className="flex items-baseline space-x-1">
-            <span className="font-[family-name:var(--font-instrument-serif)] text-3xl font-bold text-[#C96442]">REM</span>
+            <span className="font-[family-name:var(--font-instrument-serif)] text-xl font-bold text-[#C96442]">REM</span>
           </Link>
         </div>
 
-        {/* New Chat Button */}
         <div className="px-3 py-2">
-          <Button 
+          <Button
+            variant={pathname === '/project/new' ? "default" : "ghost"}
             onClick={() => router.push('/project/new')}
-            className="w-full bg-[#C96442] hover:bg-[#C96442]/90 text-[#FAF9F6] flex items-center justify-center gap-2 rounded-full"
+            className={cn(
+              "w-full justify-start text-sm",
+              pathname === '/project/new'
+                ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/50 dark:hover:bg-[#BFB8AC]/20"
+                : "text-[#262625]/70 dark:text-[#BFB8AC] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
+            )}
           >
-            <Plus className="h-4 w-4" />
-            <span>New chat</span>
+            <span className="mr-2 flex items-center justify-center h-6 w-6 bg-[#C96442] rounded-full text-[#FAF9F6]">
+              <Plus className="h-4 w-4" />
+            </span>
+            <span>New Project</span>
           </Button>
         </div>
 
         
-        <div className="px-3 pb-1">
+        <div className="px-3 pb-2">
           <Button
-            variant="outline"
+            variant={pathname === '/project' || (pathname.startsWith('/project/') && pathname !== '/project/new') ? "default" : "ghost"}
             onClick={() => router.push("/project")}
-            className="w-full justify-start text-sm text-[#262625] dark:text-[#FAF9F6] bg-transparent border-[#E3DACC] dark:border-[#BFB8AC]/30 hover:bg-[#E3DACC]/30 hover:text-[#262625] dark:hover:bg-[#BFB8AC]/10 rounded-full"
+            className={cn(
+              "w-full justify-start text-sm",
+              pathname === '/project' || (pathname.startsWith('/project/') && pathname !== '/project/new')
+                ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/50 dark:hover:bg-[#BFB8AC]/20"
+                : "text-[#262625]/70 dark:text-[#BFB8AC] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
+            )}
           >
-            <MessageCircle className="mr-2 h-3.5 w-3.5" />
+            <span className="mr-2 flex items-center justify-center h-6 w-6 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/20 rounded-full text-[#262625] dark:text-[#FAF9F6]">
+              <MessageCircle className="h-4 w-4" />
+            </span>
             <span>Projects</span>
           </Button>
         </div>
@@ -165,11 +299,18 @@ export function Sidebar({ onCollapse }: SidebarProps) {
         {/* Dashboard Button */}
         <div className="px-3 pb-2">
           <Button
-            variant="ghost"
+            variant={pathname === '/dashboard' ? "default" : "ghost"}
             onClick={() => router.push("/dashboard")}
-            className="w-full justify-start text-sm text-[#262625]/70 dark:text-[#BFB8AC] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
+            className={cn(
+              "w-full justify-start text-sm",
+              pathname === '/dashboard'
+                ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/50 dark:hover:bg-[#BFB8AC]/20"
+                : "text-[#262625]/70 dark:text-[#BFB8AC] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
+            )}
           >
-            <LayoutDashboard className="mr-2 h-4 w-4" />
+            <span className="mr-2 flex items-center justify-center h-6 w-6 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/20 rounded-full text-[#262625] dark:text-[#FAF9F6]">
+              <LayoutDashboard className="h-4 w-4" />
+            </span>
             <span>Dashboard</span>
           </Button>
         </div>
@@ -210,7 +351,9 @@ export function Sidebar({ onCollapse }: SidebarProps) {
                     )}
                   >
                     <Link href={project.route} className="w-full text-left">
-                      <div className="truncate text-sm font-medium">{project.name}</div>
+                      <div className="truncate text-sm font-medium max-w-[180px]">
+                        {project.name.length > 35 ? project.name.substring(0, 32) + "..." : project.name}
+                      </div>
                     </Link>
                   </Button>
                 ))

@@ -1,135 +1,108 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "sonner"
-import { useAuthStore } from "@/lib/store/auth-store"
-import { Header } from "@/components/header"
+import { Sidebar } from "@/components/sidebar"
+import { cn } from "@/lib/utils"
+import { useRequireAuth } from "@/hooks/auth-hooks"
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const { user, setUser } = useAuthStore()
+  const { user, isLoading } = useRequireAuth()
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  useEffect(() => {
-    const checkSession = () => {
-      try {
-        console.log("Checking session...")
-        const storedSession = localStorage.getItem('user-session')
-        console.log("Session data:", storedSession ? "Found" : "Not found")
-        
-        if (storedSession) {
-          const session = JSON.parse(storedSession)
-          console.log("Parsed session:", session)
-          
-          if (session && session.isAuthenticated) {
-            console.log("Valid authenticated session found")
-            // Update auth store with user data
-            setUser({
-              id: session.id,
-              email: session.email,
-              name: session.name,
-              image: session.image
-            })
-            setLoading(false)
-            return true
-          } else {
-            console.log("Session exists but not authenticated")
-          }
-        }
-        
-        console.log("No valid session found, redirecting to sign in")
-        router.push('/auth/sign-in')
-        return false
-      } catch (error) {
-        console.error("Error checking session:", error)
-        toast.error("Error loading your session")
-        router.push('/auth/sign-in')
-        return false
-      }
-    }
-
-    // Check session immediately
-    const hasValidSession = checkSession()
-    
-    // If no valid session, redirect after a short delay
-    if (!hasValidSession) {
-      const timeout = setTimeout(() => {
-        setLoading(false)
-      }, 2000)
-      return () => clearTimeout(timeout)
-    }
-  }, [router, setUser])
-
-  if (loading) {
+  // Show loading state while checking auth
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-4">Loading your dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-[#FAF9F6] dark:bg-[#262625]">
+        <div className="animate-spin h-8 w-8 border-4 border-[#C96442] border-t-transparent rounded-full"></div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow">
-        <div className="container py-10">
-          <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Welcome, {user?.name || user?.email?.split('@')[0]}</CardTitle>
-                <CardDescription>Your personal dashboard</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>This is a protected page that only authenticated users can access.</p>
-                {user?.image && (
-                  <div className="mt-4">
-                    <img 
-                      src={user.image} 
-                      alt={user.name || "Profile"} 
-                      className="w-16 h-16 rounded-full"
-                    />
+    <div className={cn(
+      "relative min-h-screen",
+      "bg-[#FAF9F6] dark:bg-[#262625]",
+      "flex flex-col" 
+    )}>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <Sidebar 
+          collapsed={sidebarCollapsed} 
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+        
+        {/* Main Content Area */}
+        <main className={cn(
+          "flex-1 overflow-auto p-6",
+          sidebarCollapsed ? "ml-20" : "ml-64"
+        )}>
+          <div className="mx-auto w-full max-w-6xl">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-3xl font-[family-name:var(--font-instrument-serif)] text-[#262625] dark:text-[#FAF9F6]">
+                Dashboard
+              </h1>
+              <Button
+                variant="outline"
+                className="border-[#E3DACC] dark:border-[#BFB8AC]/30 hover:bg-[#E3DACC]/10 dark:hover:bg-[#BFB8AC]/10"
+                onClick={() => { window.location.href = "/project/new"; }}
+              >
+                New Project
+              </Button>
+            </div>
+            
+            <div className="grid gap-6 mb-6">
+              <Card className="border-[#E3DACC] dark:border-[#BFB8AC]/30 bg-white dark:bg-[#1A1A1A]">
+                <CardHeader>
+                  <CardTitle className="text-xl">
+                    Quick Stats
+                  </CardTitle>
+                  <CardDescription>Your research project metrics at a glance.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-[#FAF9F6] dark:bg-[#262625] rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
+                      <p className="text-3xl font-semibold">8</p>
+                    </div>
+                    <div className="p-4 bg-[#FAF9F6] dark:bg-[#262625] rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-1">References</p>
+                      <p className="text-3xl font-semibold">32</p>
+                    </div>
+                    <div className="p-4 bg-[#FAF9F6] dark:bg-[#262625] rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-1">Summaries</p>
+                      <p className="text-3xl font-semibold">15</p>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Activity</CardTitle>
-                <CardDescription>Recent actions and progress</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>No recent activity to display.</p>
-                <Button 
-                  className="mt-4 bg-[#C96442] hover:bg-[#C96442]/90"
-                  onClick={() => router.push('/project/new')}
-                >
-                  Start a new project
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Settings</CardTitle>
-                <CardDescription>Manage your profile</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="outline" className="w-full mb-2">Edit Profile</Button>
-                <Button variant="outline" className="w-full">Change Password</Button>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-[#E3DACC] dark:border-[#BFB8AC]/30 bg-white dark:bg-[#1A1A1A]">
+                <CardHeader>
+                  <CardTitle className="text-xl">
+                    Recent Activity
+                  </CardTitle>
+                  <CardDescription>Your latest research updates.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex justify-between border-b border-[#E3DACC] dark:border-[#BFB8AC]/30 pb-3">
+                        <div>
+                          <p className="font-medium">AI-Powered Form Builder</p>
+                          <p className="text-sm text-muted-foreground">Added new paper reference</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{i} day{i !== 1 ? 's' : ''} ago</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 } 

@@ -2,16 +2,45 @@
 
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import crypto from 'crypto';
+import { useSignOut } from "@/hooks/auth-hooks";
 
 export function Header() {
     const { user, isAuthenticated, isLoading } = useAuthStore();
     const router = useRouter();
     const [profileImage, setProfileImage] = useState<string | null>(null);
+    const signOut = useSignOut();
+
+    // Redirect to appropriate pages based on auth state
+    useEffect(() => {
+        if (!isLoading) {
+            const currentPath = window.location.pathname;
+            
+            // Handle authenticated users
+            if (isAuthenticated) {
+                // If on landing page, redirect to project/new
+                if (currentPath === '/') {
+                    console.log("Header: Authenticated user on landing page, redirecting to project/new");
+                    router.push('/project/new');
+                }
+            } 
+            // Handle unauthenticated users
+            else {
+                const protectedPaths = ['/project', '/dashboard', '/settings', '/profile'];
+                
+                // Check if the current path is a protected route
+                const isProtectedRoute = protectedPaths.some(path => 
+                    currentPath === path || currentPath.startsWith(`${path}/`)
+                );
+                
+                if (isProtectedRoute) {
+                    console.log("Header: Not authenticated but on protected route, redirecting to sign-in");
+                    router.push('/auth/sign-in');
+                }
+            }
+        }
+    }, [isAuthenticated, isLoading, router]);
 
     // If user doesn't have an image, try to get one from Gravatar
     useEffect(() => {
@@ -37,18 +66,8 @@ export function Header() {
         }
     }, [user]);
 
-    const handleSignOut = async () => {
-        try {
-            const result = await signOut();
-            if (result.success) {
-                toast.success("Signed out successfully");
-                router.push("/");
-            } else {
-                toast.error("Failed to sign out");
-            }
-        } catch (error) {
-            toast.error("Failed to sign out");
-        }
+    const handleSignOut = () => {
+        signOut.mutate();
     };
 
     // Function to get initials from name or email

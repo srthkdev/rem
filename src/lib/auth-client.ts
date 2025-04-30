@@ -36,7 +36,7 @@ class AuthClient {
           console.log("Auth client: Found session data");
           const data = JSON.parse(session);
           
-          if (data && data.isAuthenticated) {
+          if (this.validateSession(data)) {
             console.log("Auth client: Valid authenticated session");
             this.user = {
               id: data.id || "user-1",
@@ -46,7 +46,7 @@ class AuthClient {
             };
             console.log("Auth client: User loaded:", this.user);
           } else {
-            console.log("Auth client: Session exists but not authenticated");
+            console.log("Auth client: Session exists but not authenticated or invalid");
             this.user = null;
           }
         } else {
@@ -58,6 +58,21 @@ class AuthClient {
         this.user = null;
       }
     }
+  }
+
+  // Validate session data to ensure it's a complete and valid session
+  private validateSession(data: any): boolean {
+    if (!data) return false;
+    
+    // Check that required fields exist
+    if (!data.isAuthenticated || !data.id || !data.email) {
+      return false;
+    }
+    
+    // Check for session expiry if we want to implement that
+    const expiryCheck = true; // No expiration checking yet, but we could add it
+    
+    return data.isAuthenticated === true && expiryCheck;
   }
 
   private saveSession(user: User): void {
@@ -177,11 +192,27 @@ class AuthClient {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (typeof window !== "undefined") {
+        // Clear all local storage items related to authentication
         localStorage.removeItem("user-session");
+        localStorage.removeItem("auth-storage");
+        
+        // Clear any session cookies
+        document.cookie = "auth-storage=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "user-session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        
+        // Clear session storage as well just to be thorough
+        sessionStorage.removeItem("user-session");
+        sessionStorage.removeItem("auth-storage");
+        
+        console.log("Auth client: Completely cleared authentication state");
       }
+      
+      // Reset internal state
       this.user = null;
+      
       return { success: true };
     } catch (error) {
+      console.error("Auth client: Error during sign out:", error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : "Failed to sign out" 
