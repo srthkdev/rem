@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { PDFViewer } from "@/components/pdf-viewer"
-import { AIPaperAnalysis } from "@/components/ai-paper-analysis"
+import { PDFViewer } from "@/components/shared/pdf-viewer"
+import { AIPaperAnalysis } from "@/components/paper-analysis/ai-paper-analysis"
 import { useProjectStore } from "@/lib/store/project-store"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { ReactNode, useState } from "react"
-import { Sidebar } from "@/components/sidebar"
+import { Sidebar } from "@/components/project/sidebar"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { useRequireAuth } from "@/hooks/auth-hooks"

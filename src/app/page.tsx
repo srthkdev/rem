@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
-import { IntroducingRemAI } from "@/components/introducing-rem-ai";
-import { Header } from "@/components/header";
+import { IntroducingRemAI } from "@/components/shared/introducing-rem-ai";
+import { Header } from "@/components/layouts/header";
 import { ArxivSearchInput } from "@/components/ui/arxiv-search-input";
 
 const placeholders = [

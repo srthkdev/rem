@@ -8,11 +8,11 @@ import { v4 as uuidv4 } from "uuid"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { IntroducingRemAI } from "@/components/introducing-rem-ai"
+import { IntroducingRemAI } from "@/components/shared/introducing-rem-ai"
 import { searchArxivPapers } from "@/lib/services/arxiv-service"
 import { ArxivPaper, useProjectStore } from "@/lib/store/project-store"
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
-import { PaperSearchGrid } from "@/components/paper-search-grid"
+import { PaperSearchGrid } from "@/components/project/paper-search-grid"
 import { Search, X, Sparkles } from "lucide-react"
 
 // Placeholder texts for paper search input

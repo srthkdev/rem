@@ -9,7 +9,7 @@ import { searchArxivPapers } from "@/lib/services/arxiv-service";
 import { ArxivPaper, useProjectStore } from "@/lib/store/project-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PaperSearchResult } from "@/components/paper-search-result";
+import { PaperSearchResult } from "@/components/project/paper-search-result";
 import { Loader2, Search, ArrowRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

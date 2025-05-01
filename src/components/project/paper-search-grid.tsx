@@ -2,10 +2,11 @@
 
 import React from "react";
 import { ArxivPaper } from "@/lib/store/project-store";
-import { PaperSearchResult } from "@/components/paper-search-result";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Sparkles, Loader2 } from "lucide-react";
+import { PaperSearchResult } from "@/components/project/paper-search-result";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 interface PaperSearchGridProps {
   papers: ArxivPaper[];

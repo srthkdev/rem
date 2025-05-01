@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { AuthView } from "@/components/auth-view";
+import { AuthView } from "@/components/auth/auth-view";
 import { useParams } from "next/navigation";
 
 export default function AuthPage() {

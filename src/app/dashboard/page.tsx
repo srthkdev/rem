@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Sidebar } from "@/components/sidebar"
+import { Sidebar } from "@/components/project/sidebar"
 import { cn } from "@/lib/utils"
 import { useRequireAuth } from "@/hooks/auth-hooks"
 import { Plus } from "lucide-react"
