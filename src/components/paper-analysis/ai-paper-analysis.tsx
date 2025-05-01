@@ -6,19 +6,21 @@ import { Button } from "@/components/ui/button";
 import { ResearchAnalysisTab } from "./research-analysis-tab";
 import { AIPodcastTab } from "./ai-podcast-tab";
 import { VisualizationTab } from "./visualization-tab";
-import { FlashcardsTab } from "./flashcards-tab";
+import { FlashcardsTab } from "./flashcard";
 import { AIChatTab } from "./ai-chat-tab";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AIPaperAnalysisProps {
   userQuery: string;
   paperTitle: string;
   className?: string;
+  projectId: string;
 }
 
 type Tab = "analysis" | "podcast" | "visualization" | "flashcards" | "chat"
 
-export function AIPaperAnalysis({ userQuery, paperTitle, className }: AIPaperAnalysisProps) {
+export function AIPaperAnalysis({ userQuery, paperTitle, className, projectId }: AIPaperAnalysisProps) {
   const [activeTab, setActiveTab] = useState<Tab>("analysis");
   const [showLabels, setShowLabels] = useState(true);
 
@@ -56,7 +58,7 @@ export function AIPaperAnalysis({ userQuery, paperTitle, className }: AIPaperAna
       id: "chat" as Tab,
       label: "AI Chat",
       icon: MessageSquare,
-      content: <AIChatTab />
+      content: <AIChatTab projectId={projectId} />
     },
     {
       id: "podcast" as Tab,
@@ -74,7 +76,7 @@ export function AIPaperAnalysis({ userQuery, paperTitle, className }: AIPaperAna
       id: "flashcards" as Tab,
       label: "Flashcards",
       icon: SquareStack,
-      content: <FlashcardsTab />
+      content: <FlashcardsTab projectId={projectId} />
     }
   ]
 

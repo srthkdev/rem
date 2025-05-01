@@ -1,44 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Copy, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useChatStore, Message } from "@/lib/store/chat-store";
 
-interface Message {
-  id: string;
-  content: string;
-  sender: "user" | "ai";
-  timestamp: Date;
+interface AIChatTabProps {
+  projectId: string;
 }
 
-export function AIChatTab() {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function AIChatTab({ projectId }: AIChatTabProps) {
   const [input, setInput] = useState("");
+  const { addMessage } = useChatStore();
+  
+  // Get messages from the store
+  const allMessages = useChatStore(state => state.messages);
+  
+  // Filter messages for this project
+  const messages = useMemo(() => {
+    return allMessages.filter(m => m.projectId === projectId);
+  }, [allMessages, projectId]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
+    // Add user message to store
+    addMessage({
       content: input,
       sender: "user",
-      timestamp: new Date(),
-    };
+      projectId,
+    });
 
     // Add AI response (hardcoded for now)
-    const aiResponse: Message = {
-      id: (Date.now() + 1).toString(),
+    addMessage({
       content: "Hello! I am REM AI, your research assistant. I have analyzed your paper and I'm here to help you understand it better. I have access to the full context of your research paper, including its methodology, findings, and implications. How can I assist you today?",
       sender: "ai",
-      timestamp: new Date(),
-    };
+      projectId,
+    });
 
-    setMessages(prev => [...prev, userMessage, aiResponse]);
     setInput("");
   };
 

@@ -2,10 +2,56 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, ExternalLink, RefreshCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, ExternalLink, RefreshCcw, Highlighter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 import { usePDFContext } from "@/lib/pdf-context";
+
+// Styles for text highlighting
+const textLayerStyles = `
+  .react-pdf__Page__textContent {
+    cursor: text !important;
+    user-select: text !important;
+    z-index: 10 !important;
+    opacity: 1 !important;
+  }
+  .react-pdf__Page__textContent span {
+    opacity: 0.2 !important;
+    color: black !important;
+    cursor: text !important;
+  }
+  .react-pdf__Page__textContent span::selection,
+  .react-pdf__Page__textContent::selection {
+    background-color: rgba(201, 100, 66, 0.4) !important;
+    color: black !important;
+  }
+  .highlighted-text {
+    background-color: rgba(201, 100, 66, 0.4) !important;
+    padding: 2px 0;
+    border-radius: 2px;
+    position: relative;
+    z-index: 2;
+    color: black !important;
+  }
+  
+  .pdf-highlight-container {
+    position: absolute;
+    pointer-events: none;
+    z-index: 20;
+  }
+  
+  .pdf-highlight {
+    background-color: rgba(201, 100, 66, 0.4);
+    position: absolute;
+    border-radius: 2px;
+    transition: opacity 200ms ease;
+    box-shadow: 0 0 4px rgba(201, 100, 66, 0.6);
+  }
+  
+  .pdf-highlight:hover {
+    opacity: 0.7;
+  }
+`;
 
 // Loading component to show while the PDF viewer is loading
 const PDFLoading = () => (
@@ -37,6 +83,15 @@ interface PDFViewerProps {
   onFallbackRequest?: () => void;
 }
 
+interface Highlight {
+  id: string;
+  content: string;
+  position: {
+    pageNumber: number;
+    boundingRect: DOMRect;
+  };
+}
+
 export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps) {
   const { initialized } = usePDFContext();
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -46,6 +101,50 @@ export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps)
   const [loading, setLoading] = useState(true);
   const [containerWidth, setContainerWidth] = useState(800);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [isHighlightingEnabled, setIsHighlightingEnabled] = useState(false);
+  const highlightsContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Add text layer styles
+  useEffect(() => {
+    // Add inline styles for more specificity
+    const style = document.createElement('style');
+    style.innerHTML = textLayerStyles;
+    document.head.appendChild(style);
+    
+    // Enhance all text layers
+    const enhanceTextLayers = () => {
+      const textLayers = document.querySelectorAll('.react-pdf__Page__textContent');
+      textLayers.forEach((layer) => {
+        if (layer instanceof HTMLElement) {
+          layer.style.opacity = '1';
+          layer.style.userSelect = 'text';
+          layer.style.cursor = 'text';
+          layer.style.zIndex = '10';
+        }
+      });
+    };
+    
+    // Run initially
+    enhanceTextLayers();
+    
+    // Set up observer to enhance new text layers
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.addedNodes.length) {
+          // Wait a bit for React PDF to fully render
+          setTimeout(enhanceTextLayers, 200);
+        }
+      }
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    return () => {
+      document.head.removeChild(style);
+      observer.disconnect();
+    };
+  }, []);
   
   // Log PDFjs version for debugging
   useEffect(() => {
@@ -83,6 +182,137 @@ export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps)
       resizeObserver.disconnect();
     };
   }, []);
+
+  // Handle text highlighting with improved visibility
+  useEffect(() => {
+    if (!isHighlightingEnabled) return;
+    
+    console.log("Highlight mode enabled, ready to highlight text selections");
+    
+    const handleHighlight = (e: Event) => {
+      // Show visual feedback that highlighting is active
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'text';
+      }
+      
+      setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection?.toString().trim();
+        
+        if (!text || text.length === 0) return;
+        
+        console.log("Highlighting text:", text.substring(0, 30));
+        
+        try {
+          const range = selection?.getRangeAt(0);
+          if (!range) return;
+          
+          const rects = range.getClientRects();
+          if (!rects || rects.length === 0) return;
+          
+          // Create a new highlight for each rect in the range
+          const newHighlights: Highlight[] = Array.from(rects).map((rect) => ({
+            id: crypto.randomUUID(),
+            content: text,
+            position: {
+              pageNumber,
+              boundingRect: rect as DOMRect
+            }
+          }));
+          
+          setHighlights(prev => [...prev, ...newHighlights]);
+          
+          // Create visual highlights as overlay elements
+          const pdfPage = containerRef.current?.querySelector('.react-pdf__Page');
+          
+          if (pdfPage && highlightsContainerRef.current) {
+            const pdfRect = pdfPage.getBoundingClientRect();
+            
+            newHighlights.forEach(highlight => {
+              const rect = highlight.position.boundingRect;
+              
+              // Create highlight element
+              const highlightEl = document.createElement('div');
+              highlightEl.className = 'pdf-highlight';
+              highlightEl.dataset.highlightId = highlight.id;
+              highlightEl.title = highlight.content;
+              
+              // Position relative to PDF container
+              highlightEl.style.left = `${rect.left - pdfRect.left}px`;
+              highlightEl.style.top = `${rect.top - pdfRect.top}px`;
+              highlightEl.style.width = `${rect.width}px`;
+              highlightEl.style.height = `${rect.height}px`;
+              
+              highlightsContainerRef.current?.appendChild(highlightEl);
+            });
+            
+            // Add toast notification
+            if (typeof window !== 'undefined' && (window as any).toast) {
+              (window as any).toast.success("Text highlighted!");
+            }
+          }
+          
+          // Clear selection
+          selection?.removeAllRanges();
+        } catch (error) {
+          console.error("Failed to highlight text:", error);
+        }
+      }, 100);
+    };
+    
+    // Get text content layer
+    const textLayer = containerRef.current?.querySelector('.react-pdf__Page__textContent');
+    
+    // Add highlight handler to text layer if it exists
+    if (textLayer) {
+      console.log("Adding highlight handler to text layer");
+      textLayer.addEventListener('mouseup', handleHighlight);
+    }
+    
+    // Otherwise add to document but filter for events within PDF container
+    const documentHandler = (e: MouseEvent) => {
+      if (e.target instanceof Element && containerRef.current?.contains(e.target)) {
+        handleHighlight(e);
+      }
+    };
+    
+    document.addEventListener('mouseup', documentHandler);
+    
+    return () => {
+      if (textLayer) {
+        textLayer.removeEventListener('mouseup', handleHighlight);
+      }
+      document.removeEventListener('mouseup', documentHandler);
+      
+      // Reset cursor
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'default';
+      }
+    };
+  }, [isHighlightingEnabled, pageNumber]);
+  
+  // Show a toast when highlighting is toggled
+  useEffect(() => {
+    if (isHighlightingEnabled) {
+      // Check if we can show toast
+      if (typeof window !== 'undefined' && (window as any).toast) {
+        (window as any).toast.info(
+          "Highlight mode activated. Select text to highlight.", 
+          { duration: 3000 }
+        );
+      }
+      
+      // Add visual class to container
+      if (containerRef.current) {
+        containerRef.current.classList.add('highlight-mode-active');
+      }
+    } else {
+      // Remove visual class
+      if (containerRef.current) {
+        containerRef.current.classList.remove('highlight-mode-active');
+      }
+    }
+  }, [isHighlightingEnabled]);
 
   // Reset state when URL changes
   useEffect(() => {
@@ -128,6 +358,10 @@ export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps)
     setScale(prevScale => Math.max(0.5, prevScale - 0.1));
   }
 
+  function toggleHighlighting() {
+    setIsHighlightingEnabled(!isHighlightingEnabled);
+  }
+
   function openPDFExternally() {
     window.open(url, '_blank');
   }
@@ -138,7 +372,10 @@ export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps)
   }
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden project-pdf-container" ref={containerRef}>
+    <div className={cn(
+      "flex flex-col h-full w-full overflow-hidden project-pdf-container",
+      isHighlightingEnabled && "highlight-mode"
+    )} ref={containerRef}>
       <div className="flex items-center justify-between p-2 border-b border-[#E3DACC] dark:border-[#BFB8AC]/30 flex-shrink-0 z-10">
         <div className="flex items-center space-x-2">
           <Button
@@ -184,6 +421,16 @@ export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps)
             className="h-8 w-8 p-0"
           >
             <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={isHighlightingEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={toggleHighlighting}
+            disabled={loading || Boolean(error)}
+            className={cn("h-8 w-8 p-0 ml-2", isHighlightingEnabled && "bg-[#C96442] text-white")}
+            title={isHighlightingEnabled ? "Exit Highlight Mode" : "Enter Highlight Mode"}
+          >
+            <Highlighter className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -234,10 +481,24 @@ export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps)
             </div>
           </div>
         ) : (
-          <div className="w-full h-full flex justify-center items-center overflow-hidden">
+          <div className="w-full h-full flex justify-center items-center overflow-hidden relative">
             {loading && <PDFLoading />}
             
-            <div className={loading ? "hidden" : "pdf-container w-full h-full"}>
+            <div className={loading ? "hidden" : "pdf-container w-full h-full relative"}>
+              {/* Highlight container appears on top of the PDF */}
+              <div 
+                className="pdf-highlight-container" 
+                ref={highlightsContainerRef}
+                style={{ 
+                  top: 0, 
+                  left: 0, 
+                  width: '100%', 
+                  height: '100%', 
+                  position: 'absolute',
+                  zIndex: 20
+                }}
+              ></div>
+              
               <PDFDocument
                 file={url}
                 onLoadSuccess={onDocumentLoadSuccess}
@@ -254,9 +515,9 @@ export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps)
                 <PDFPage 
                   pageNumber={pageNumber} 
                   scale={scale}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  className="shadow-lg mx-auto"
+                  renderTextLayer={true}
+                  renderAnnotationLayer={true}
+                  className="shadow-lg mx-auto relative"
                   width={containerWidth}
                   canvasBackground="#ffffff"
                   loading={
@@ -270,6 +531,12 @@ export function PDFViewer({ url, className, onFallbackRequest }: PDFViewerProps)
           </div>
         )}
       </div>
+      
+      {isHighlightingEnabled && (
+        <div className="py-2 px-3 text-sm bg-[#C96442]/10 text-[#C96442] font-medium flex items-center justify-center border-t border-[#C96442]/20">
+          <Highlighter className="h-4 w-4 mr-2" /> Highlight Mode Active: Select text to highlight
+        </div>
+      )}
     </div>
   );
 } 
