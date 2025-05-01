@@ -124,7 +124,7 @@ export default function ProjectsPage() {
   return (
     <div className="container max-w-5xl py-8 px-4 md:px-6 h-full flex flex-col mx-auto pt-6">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold mb-2 font-[family-name:var(--font-instrument-serif)] text-[#262625] dark:text-[#FAF9F6]">
+        <h1 className="text-4xl font-bold mb-2 font-[family-name:var(--font-instrument-serif)] text-[#262625] dark:text-[#FAF9F6]">
           Your projects
         </h1>
         {isSelectionMode ? (

@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Brain, Headphones, LineChart, SquareStack } from "lucide-react";
+import { Brain, Headphones, LineChart, SquareStack, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ResearchAnalysisTab } from "./research-analysis-tab";
 import { AIPodcastTab } from "./ai-podcast-tab";
 import { VisualizationTab } from "./visualization-tab";
 import { FlashcardsTab } from "./flashcards-tab";
+import { AIChatTab } from "./ai-chat-tab";
 import { cn } from "@/lib/utils";
 
 interface AIPaperAnalysisProps {
@@ -15,7 +16,7 @@ interface AIPaperAnalysisProps {
   className?: string;
 }
 
-type Tab = "analysis" | "podcast" | "visualization" | "flashcards"
+type Tab = "analysis" | "podcast" | "visualization" | "flashcards" | "chat"
 
 export function AIPaperAnalysis({ userQuery, paperTitle, className }: AIPaperAnalysisProps) {
   const [activeTab, setActiveTab] = useState<Tab>("analysis");
@@ -26,6 +27,12 @@ export function AIPaperAnalysis({ userQuery, paperTitle, className }: AIPaperAna
       label: "Research Analysis",
       icon: Brain,
       content: <ResearchAnalysisTab />
+    },
+    {
+      id: "chat" as Tab,
+      label: "AI Chat",
+      icon: MessageSquare,
+      content: <AIChatTab />
     },
     {
       id: "podcast" as Tab,
