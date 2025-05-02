@@ -92,7 +92,7 @@ export function Header() {
 
                 {/* Navigation Links - Center Aligned */}
                 <nav className="hidden md:flex items-center justify-center flex-1 gap-6">
-                    <Link href="/home" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
+                    <Link href="/" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
                         Home
                     </Link>
                     <Link href="/explore" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
@@ -100,9 +100,6 @@ export function Header() {
                     </Link>
                     <Link href="/about" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
                         About
-                    </Link>
-                    <Link href="/dashboard" className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]">
-                        Dashboard
                     </Link>
                 </nav>
 

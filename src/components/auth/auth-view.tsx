@@ -246,7 +246,7 @@ export function AuthView({ pathname }: { pathname: string }) {
     const isSignIn = pathname === "sign-in";
     const router = useRouter();
     const searchParams = useSearchParams();
-    const redirectTo = searchParams?.get('redirectTo') || '/project/new';
+    const redirectTo = searchParams?.get('returnUrl') || '/project/new';
     const { setUser } = useAuthStore();
     
     // Check for existing session using React Query for better caching and loading states
@@ -295,52 +295,60 @@ export function AuthView({ pathname }: { pathname: string }) {
     // Show loading state while checking session
     if (sessionLoading) {
         return (
-            <div className="flex grow flex-col items-center justify-center gap-4 p-4 bg-[#FAF9F6] dark:bg-[#262625]">
-                <div className="animate-spin h-8 w-8 border-4 border-[#C96442] border-t-transparent rounded-full"></div>
-                <p className="text-sm text-muted-foreground">Checking authentication...</p>
+            <div className="w-full">
+                <div className="flex items-center justify-center min-h-[50vh]">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="animate-spin h-8 w-8 border-4 border-[#C96442] border-t-transparent rounded-full"></div>
+                        <p className="text-sm text-muted-foreground">Checking authentication...</p>
+                    </div>
+                </div>
             </div>
         );
     }
 
     return (
-        <main className="flex grow flex-col items-center justify-center gap-4 p-4 bg-[#FAF9F6] dark:bg-[#262625]">
-            <div className="w-full max-w-md mx-auto px-8 py-12 rounded-lg bg-white dark:bg-[#1A1A1A] shadow-sm">
-                <div className="flex justify-center mb-6">
-                    <Link href="/">
-                        <div className="flex items-baseline">
-                            <span className="font-[family-name:var(--font-instrument-serif)] text-2xl font-bold text-[#C96442]">REM</span>
-                        </div>
-                    </Link>
-                </div>
-                
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-[family-name:var(--font-instrument-serif)] mb-2">
-                        {isSignIn ? "Welcome back" : "Create an account"}
-                    </h1>
-                    <p className="text-muted-foreground">
-                        {isSignIn 
-                            ? "Sign in to access your personalized research experience" 
-                            : "Join Rem to make research accessible and personalized"}
+        <div className="w-full bg-[#FAF9F6] dark:bg-[#262625]">
+            <div className="flex flex-col items-center justify-center px-4 py-12">
+                <div className="w-full max-w-md space-y-8">
+                    <div className="flex justify-center mb-6">
+                        <Link href="/">
+                            <div className="flex items-baseline">
+                                <span className="font-[family-name:var(--font-instrument-serif)] text-2xl font-bold text-[#C96442]">REM</span>
+                            </div>
+                        </Link>
+                    </div>
+
+                    <div className="text-center">
+                        <h1 className="text-3xl font-[family-name:var(--font-instrument-serif)] mb-2">
+                            {isSignIn ? "Welcome back" : "Create an account"}
+                        </h1>
+                        <p className="text-muted-foreground">
+                            {isSignIn 
+                                ? "Sign in to access your personalized research experience" 
+                                : "Join Rem to make research accessible and personalized"}
+                        </p>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1C1C1C] shadow-sm rounded-lg px-6 py-8 ring-1 ring-[#E3DACC] dark:ring-[#BFB8AC]/30">
+                        {isSignIn ? (
+                            <SignInForm redirectTo={redirectTo} />
+                        ) : (
+                            <SignUpForm redirectTo={redirectTo} />
+                        )}
+                    </div>
+
+                    <p className="text-muted-foreground text-xs text-center">
+                        By using Rem, you agree to our{" "}
+                        <Link href="/terms" className="text-[#C96442] hover:underline">
+                            Terms
+                        </Link>{" "}
+                        and{" "}
+                        <Link href="/privacy" className="text-[#C96442] hover:underline">
+                            Privacy Policy
+                        </Link>
                     </p>
                 </div>
-                
-                {isSignIn ? (
-                    <SignInForm redirectTo={redirectTo} />
-                ) : (
-                    <SignUpForm redirectTo={redirectTo} />
-                )}
             </div>
-
-            <p className="text-muted-foreground text-xs mt-4">
-                By using Rem, you agree to our{" "}
-                <Link href="/terms" className="text-[#C96442] hover:underline">
-                    Terms
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-[#C96442] hover:underline">
-                    Privacy Policy
-                </Link>
-            </p>
-        </main>
+        </div>
     );
 } 

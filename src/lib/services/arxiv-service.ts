@@ -114,4 +114,18 @@ export async function getArxivPaper(id: string): Promise<ArxivPaper> {
     console.error("Error fetching ArXiv paper:", error);
     throw error;
   }
+}
+
+export async function getPaperById(id: string): Promise<ArxivPaper | null> {
+    try {
+        const response = await fetch(`/api/arxiv/paper/${id}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch paper');
+        }
+        const paper = await response.json();
+        return paper;
+    } catch (error) {
+        console.error('Error fetching paper:', error);
+        return null;
+    }
 } 

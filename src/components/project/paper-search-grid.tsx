@@ -64,18 +64,8 @@ export function PaperSearchGrid({
         ))}
       </div>
       
-      {selectedPaper && (
-        <div className="flex justify-center mt-6 mb-4">
-          <Button
-            onClick={onCreateProject}
-            disabled={isCreating}
-            className="bg-[#C96442] hover:bg-[#C96442]/90 text-[#FAF9F6] gap-2 px-6"
-          >
-            {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
-            Create Project with Selected Paper
-          </Button>
-        </div>
-      )}
+      
+    
     </div>
   );
 } 

@@ -122,9 +122,9 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="container max-w-5xl py-8 px-4 md:px-6 h-full flex flex-col mx-auto pt-6">
+    <div className="container max-w-5xl py-8 px-4 md:px-6 h-full flex flex-col mx-auto">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-bold mb-2 font-[family-name:var(--font-instrument-serif)] text-[#262625] dark:text-[#FAF9F6]">
+        <h1 className="text-4xl font-bold font-[family-name:var(--font-instrument-serif)] text-[#262625] dark:text-[#FAF9F6]">
           Your projects
         </h1>
         {isSelectionMode ? (
@@ -214,15 +214,15 @@ export default function ProjectsPage() {
             </div>
             
             <ScrollArea className="flex-grow" ref={containerRef}>
-              <div className="space-y-2 pr-4">
+              <div className="space-y-2">
                 {filteredProjects.map((project) => (
                   <Card 
                     key={project.id}
                     onClick={() => handleProjectClick(project.id)}
                     className={cn(
                       "p-4 cursor-pointer transition-all duration-200 bg-transparent",
-                      "border-[#E3DACC] dark:border-[#BFB8AC]/30",
-                      "hover:bg-[#E3DACC]/10 dark:hover:bg-[#BFB8AC]/5",
+                      "border-[#E3DACC] dark:border-[#BFB8AC]/30 border-2",
+                      "hover:bg-[#E3DACC]/10 dark:hover:bg-[#BFB8AC]/5 hover:border-[#BB5F3F] dark:hover:border-[#BB5F3F]", // added hover brown border
                       "text-[#262625] dark:text-[#FAF9F6]",
                       isSelected(project.id) && isSelectionMode && "border-[#C96442] bg-[#C96442]/5 dark:bg-[#C96442]/10"
                     )}
