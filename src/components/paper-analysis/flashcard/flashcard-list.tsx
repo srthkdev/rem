@@ -1,46 +1,44 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { Plus, Trash2 } from "lucide-react"
-import { toast } from "sonner"
+import { useState, useMemo } from "react";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useFlashcardStore, Flashcard } from "@/lib/store/flashcard-store"
-import { FlashcardForm } from "./flashcard-form"
+} from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useFlashcardStore, Flashcard } from "@/lib/store/flashcard-store";
+import { FlashcardForm } from "./flashcard-form";
 
 interface FlashcardListProps {
-  projectId: string
+  projectId: string;
 }
 
 export function FlashcardList({ projectId }: FlashcardListProps) {
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const deleteFlashcard = useFlashcardStore(state => state.deleteFlashcard)
-  
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const deleteFlashcard = useFlashcardStore((state) => state.deleteFlashcard);
+
   // Get all flashcards from the store
-  const allFlashcards = useFlashcardStore(state => state.flashcards)
-  
+  const allFlashcards = useFlashcardStore((state) => state.flashcards);
+
   // Use useMemo to filter flashcards by projectId
   const flashcards = useMemo(() => {
-    return allFlashcards.filter(card => card.projectId === projectId)
-  }, [allFlashcards, projectId])
+    return allFlashcards.filter((card) => card.projectId === projectId);
+  }, [allFlashcards, projectId]);
 
   const handleDelete = (id: string) => {
-    deleteFlashcard(id)
-    toast.success("Flashcard deleted successfully!")
-  }
+    deleteFlashcard(id);
+    toast.success("Flashcard deleted successfully!");
+  };
 
   return (
     <div className="space-y-4">
-      
-
       <ScrollArea className="h-[calc(100vh-200px)] pr-4">
         <div className="grid gap-4">
           {flashcards.map((flashcard: Flashcard) => (
@@ -78,5 +76,5 @@ export function FlashcardList({ projectId }: FlashcardListProps) {
         onClose={() => setIsFormOpen(false)}
       />
     </div>
-  )
-} 
+  );
+}

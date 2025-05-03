@@ -1,11 +1,11 @@
 import { SignInInput, SignUpInput } from "./validator";
 
-type AuthResult = {
+export type AuthResult = {
   success: boolean;
   error?: string;
 };
 
-type User = {
+export type User = {
   id: string;
   email: string;
   name?: string;
@@ -13,229 +13,115 @@ type User = {
   emailVerified?: Date | null;
 };
 
-type Session = {
+export type Session = {
   user: User | null;
 };
 
-// For demo purposes, mock auth implementation - replace with your actual auth service
 class AuthClient {
-  private user: User | null = null;
-
-  constructor() {
-    // Check for existing session in localStorage
-    this.loadSession();
-  }
-
-  private loadSession(): void {
-    if (typeof window !== "undefined") {
-      try {
-        console.log("Auth client: Loading session from localStorage");
-        const session = localStorage.getItem("user-session");
-        
-        if (session) {
-          console.log("Auth client: Found session data");
-          const data = JSON.parse(session);
-          
-          if (this.validateSession(data)) {
-            console.log("Auth client: Valid authenticated session");
-            this.user = {
-              id: data.id || "user-1",
-              email: data.email,
-              name: data.name,
-              image: data.image,
-            };
-            console.log("Auth client: User loaded:", this.user);
-          } else {
-            console.log("Auth client: Session exists but not authenticated or invalid");
-            this.user = null;
-          }
-        } else {
-          console.log("Auth client: No session found in localStorage");
-          this.user = null;
-        }
-      } catch (error) {
-        console.error("Auth client: Failed to parse session:", error);
-        this.user = null;
-      }
-    }
-  }
-
-  // Validate session data to ensure it's a complete and valid session
-  private validateSession(data: any): boolean {
-    if (!data) return false;
-    
-    // Check that required fields exist
-    if (!data.isAuthenticated || !data.id || !data.email) {
-      return false;
-    }
-    
-    // Check for session expiry if we want to implement that
-    const expiryCheck = true; // No expiration checking yet, but we could add it
-    
-    return data.isAuthenticated === true && expiryCheck;
-  }
-
-  private saveSession(user: User): void {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "user-session",
-        JSON.stringify({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          isAuthenticated: true,
-        })
-      );
-      this.user = user;
-    }
-  }
-
   async signInWithEmail(data: SignInInput): Promise<AuthResult> {
     try {
-      // In a real app, this would be an API call to your auth service
-      // Simulate async operation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simple mock for demo
-      const user: User = {
-        id: "user-1",
-        email: data.email,
-        name: data.email.split("@")[0],
-      };
-
-      this.saveSession(user);
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (!res.ok) return { success: false, error: result.error };
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Failed to sign in" 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to sign in",
       };
     }
   }
 
   async signUpWithEmail(data: SignUpInput): Promise<AuthResult> {
     try {
-      // In a real app, this would be an API call to your auth service
-      // Simulate async operation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simple mock for demo
-      const user: User = {
-        id: "user-" + Date.now(),
-        email: data.email,
-        name: data.username,
-      };
-
-      this.saveSession(user);
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (!res.ok) return { success: false, error: result.error };
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Failed to create account" 
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to create account",
       };
     }
   }
 
   async signInWithGoogle(): Promise<AuthResult> {
     try {
-      // Redirect to Google OAuth authentication URL
       if (typeof window !== "undefined") {
-        // Ensure we have the client ID from environment
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
         if (!clientId) {
-          return { 
-            success: false, 
-            error: "Google client ID is not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in .env file." 
+          return {
+            success: false,
+            error:
+              "Google client ID is not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in .env file.",
           };
         }
-
-        // Set up Google OAuth parameters
-        const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || `${window.location.origin}/api/auth/oauth/google/callback`;
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-        
-        // Define the OAuth 2.0 parameters
-        const scope = encodeURIComponent('profile email');
-        const responseType = 'code';
-        const accessType = 'offline';
-        const prompt = 'select_account';
-        
-        // Construct the authorization URL
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${scope}&access_type=${accessType}&prompt=${prompt}`;
-        
-        // Redirect to Google's OAuth page
+        const redirectUri =
+          process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ||
+          `${window.location.origin}/api/auth/oauth/google/callback`;
+        const scope = encodeURIComponent("profile email");
+        const responseType = "code";
+        const accessType = "offline";
+        const prompt = "select_account";
+        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+          redirectUri,
+        )}&response_type=${responseType}&scope=${scope}&access_type=${accessType}&prompt=${prompt}`;
         window.location.href = googleAuthUrl;
-        
-        // Since we're redirecting, the function will not return immediately
-        // We return a pending promise that will be resolved after redirection and callback
-        return new Promise<AuthResult>(() => {
-          // This code will not run as we're redirecting
-        });
+        return new Promise<AuthResult>(() => {});
       } else {
-        return { 
-          success: false, 
-          error: "Cannot access browser window" 
-        };
+        return { success: false, error: "Cannot access browser window" };
       }
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Failed to sign in with Google" 
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to sign in with Google",
       };
     }
   }
 
   async signOut(): Promise<AuthResult> {
     try {
-      // In a real app, this would be an API call to your auth service
-      // Simulate async operation
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      if (typeof window !== "undefined") {
-        // Clear all local storage items related to authentication
-        localStorage.removeItem("user-session");
-        localStorage.removeItem("auth-storage");
-        
-        // Clear any session cookies
-        document.cookie = "auth-storage=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "user-session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        
-        // Clear session storage as well just to be thorough
-        sessionStorage.removeItem("user-session");
-        sessionStorage.removeItem("auth-storage");
-        
-        console.log("Auth client: Completely cleared authentication state");
-      }
-      
-      // Reset internal state
-      this.user = null;
-      
+      const res = await fetch("/api/auth/signout", { method: "POST" });
+      if (!res.ok) return { success: false, error: "Failed to sign out" };
       return { success: true };
     } catch (error) {
-      console.error("Auth client: Error during sign out:", error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Failed to sign out" 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to sign out",
       };
     }
   }
 
   async getSession(): Promise<Session> {
-    // In a real app, this would verify the session with your auth service
-    // For demo, we'll just return the user from local storage
-    this.loadSession();
-    return { user: this.user };
+    try {
+      const res = await fetch("/api/auth/session");
+      if (!res.ok) return { user: null };
+      const data = await res.json();
+      return { user: data.user };
+    } catch {
+      return { user: null };
+    }
   }
 }
 
 export const authClient = new AuthClient();
-
-// Export authentication functions for ease of use
-export const signInWithEmail = (data: SignInInput) => authClient.signInWithEmail(data);
-export const signUpWithEmail = (data: SignUpInput) => authClient.signUpWithEmail(data);
+export const signInWithEmail = (data: SignInInput) =>
+  authClient.signInWithEmail(data);
+export const signUpWithEmail = (data: SignUpInput) =>
+  authClient.signUpWithEmail(data);
 export const signInWithGoogle = () => authClient.signInWithGoogle();
 export const signOut = () => authClient.signOut();
-
-// Re-export types
-export type { AuthResult, User, Session };
-export { type SignInInput, type SignUpInput } from "./validator";
+export type { SignInInput, SignUpInput } from "./validator";

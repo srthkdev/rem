@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 // Email validation schema
-export const emailSchema = z.string().email("Please enter a valid email address");
+export const emailSchema = z
+  .string()
+  .email("Please enter a valid email address");
 
 // Password validation schema
 export const passwordSchema = z
@@ -16,7 +18,10 @@ export const usernameSchema = z
   .string()
   .min(3, "Username must be at least 3 characters")
   .max(20, "Username must be at most 20 characters")
-  .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens");
+  .regex(
+    /^[a-zA-Z0-9_-]+$/,
+    "Username can only contain letters, numbers, underscores, and hyphens",
+  );
 
 // User schema for sign up
 export const signUpSchema = z.object({
@@ -45,4 +50,4 @@ export function validateField<T>(schema: z.ZodType<T>, value: T) {
     }
     return { valid: false, error: "Invalid input" };
   }
-} 
+}

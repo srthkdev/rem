@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { Plus, SquareStack } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { FlashcardForm } from "./flashcard-form"
-import { FlashcardList } from "./flashcard-list"
+import React, { useState } from "react";
+import { Plus, SquareStack } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FlashcardForm } from "./flashcard-form";
+import { FlashcardList } from "./flashcard-list";
 
 interface FlashcardsTabProps {
-  projectId: string
+  projectId: string;
 }
 
 export function FlashcardsTab({ projectId }: FlashcardsTabProps) {
-  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   return (
     <div className="p-4">
@@ -20,11 +20,13 @@ export function FlashcardsTab({ projectId }: FlashcardsTabProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <SquareStack className="h-5 w-5 text-[#C96442]" />
-            <span className="text-2xl font-3xl text-[#262625] dark:text-[#FAF9F6] font-[family-name:var(--font-instrument-serif)]">Flashcards</span>
+            <span className="text-2xl font-3xl text-[#262625] dark:text-[#FAF9F6] font-[family-name:var(--font-instrument-serif)]">
+              Flashcards
+            </span>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setIsFormOpen(true)}
             className="flex items-center gap-1"
           >
@@ -44,5 +46,5 @@ export function FlashcardsTab({ projectId }: FlashcardsTabProps) {
         />
       </div>
     </div>
-  )
-} 
+  );
+}

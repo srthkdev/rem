@@ -6,14 +6,15 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { searchArxivPapers } from "@/lib/services/arxiv-service";
-import { ArxivPaper, useProjectStore } from "@/lib/store/project-store";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArxivPaper } from "@/lib/store/project-store";
+
 import { Button } from "@/components/ui/button";
 import { PaperSearchResult } from "@/components/project/paper-search-result";
-import { Loader2, Search, ArrowRight, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2, ArrowRight, X } from "lucide-react";
+
 import { toast } from "sonner";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
+import { useProjectUIStore } from "@/lib/store/project-store";
 
 // Schema for search form
 const searchSchema = z.object({
@@ -43,15 +44,14 @@ export function ArxivSearchInput() {
   const [showResults, setShowResults] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Access the project store
+  // Access the project UI store
   const {
     searchResults,
     setSearchResults,
     selectedPaper,
     setSelectedPaper,
-    addProject,
     clearSearchResults,
-  } = useProjectStore();
+  } = useProjectUIStore();
 
   // Handle input change with debounce
   useEffect(() => {
@@ -68,8 +68,8 @@ export function ArxivSearchInput() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Search for papers when debounced query changes
-  const { isFetching } = useQuery({
+  // Handle success and error side effects
+  const { data, error, isLoading } = useQuery<ArxivPaper[]>({
     queryKey: ["arxivSearch", debouncedQuery],
     queryFn: async () => {
       try {
@@ -82,17 +82,20 @@ export function ArxivSearchInput() {
       }
     },
     enabled: debouncedQuery.length >= 3,
-    onSuccess: (data: ArxivPaper[]) => {
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (data) {
       setSearchResults(data);
       setIsSearching(false);
-    },
-    onError: () => {
+    }
+    if (error) {
       toast.error("Failed to search papers. Please try again.");
       setIsSearching(false);
-    },
-    staleTime: 60000, // 1 minute
-    refetchOnWindowFocus: false,
-  } as any); // Type assertion to bypass strictness
+    }
+  }, [data, error, setSearchResults]);
 
   // Handle creating a new project with selected paper
   const createProjectMutation = useMutation({
@@ -108,7 +111,6 @@ export function ArxivSearchInput() {
         lastMessage: "Project created with paper",
       };
 
-      addProject(newProject);
       return newProject.id;
     },
     onSuccess: (projectId) => {
@@ -154,7 +156,7 @@ export function ArxivSearchInput() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setQuery(newValue);
-    
+
     // If the input is empty, clear search results
     if (!newValue.trim()) {
       clearSearchResults();
@@ -225,7 +227,7 @@ export function ArxivSearchInput() {
               )}
             </div>
 
-            {isSearching || isFetching ? (
+            {isSearching || isLoading ? (
               <div className="flex flex-col items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 text-[#C96442] animate-spin mb-2" />
                 <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
@@ -258,4 +260,4 @@ export function ArxivSearchInput() {
       )}
     </div>
   );
-} 
+}

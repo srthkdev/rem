@@ -34,4 +34,4 @@ export const AnimatedShinyText: FC<AnimatedShinyTextProps> = ({
       {children}
     </span>
   );
-}; 
+};

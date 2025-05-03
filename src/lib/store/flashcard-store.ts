@@ -1,6 +1,6 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-import { z } from "zod"
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { z } from "zod";
 
 export const flashcardSchema = z.object({
   id: z.string(),
@@ -9,15 +9,19 @@ export const flashcardSchema = z.object({
   information: z.string().min(1, "Information is required"),
   createdAt: z.date(),
   updatedAt: z.date(),
-})
+});
 
-export type Flashcard = z.infer<typeof flashcardSchema>
+export type Flashcard = z.infer<typeof flashcardSchema>;
 
 interface FlashcardStore {
-  flashcards: Flashcard[]
-  addFlashcard: (projectId: string, heading: string, information: string) => void
-  deleteFlashcard: (id: string) => void
-  getProjectFlashcards: (projectId: string) => Flashcard[]
+  flashcards: Flashcard[];
+  addFlashcard: (
+    projectId: string,
+    heading: string,
+    information: string,
+  ) => void;
+  deleteFlashcard: (id: string) => void;
+  getProjectFlashcards: (projectId: string) => Flashcard[];
 }
 
 export const useFlashcardStore = create<FlashcardStore>()(
@@ -32,22 +36,22 @@ export const useFlashcardStore = create<FlashcardStore>()(
           information,
           createdAt: new Date(),
           updatedAt: new Date(),
-        }
+        };
         set((state) => ({
           flashcards: [...state.flashcards, newFlashcard],
-        }))
+        }));
       },
       deleteFlashcard: (id) => {
         set((state) => ({
           flashcards: state.flashcards.filter((f) => f.id !== id),
-        }))
+        }));
       },
       getProjectFlashcards: (projectId) => {
-        return get().flashcards.filter((f) => f.projectId === projectId)
+        return get().flashcards.filter((f) => f.projectId === projectId);
       },
     }),
     {
       name: "flashcards-storage",
-    }
-  )
-) 
+    },
+  ),
+);

@@ -3,7 +3,8 @@
  */
 
 /* Common styles for all pages */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -34,7 +35,7 @@ html, body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: var(--background, #FAF9F6);
+  background-color: var(--background, #faf9f6);
   z-index: 10; /* Ensure it stays above other content */
 }
 
@@ -79,4 +80,4 @@ body.sidebar-collapsed .standard-layout {
 body.sidebar-collapsed .project-detail-layout {
   left: 48px !important;
   width: calc(100% - 48px) !important;
-} 
+}

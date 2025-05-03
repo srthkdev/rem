@@ -4,6 +4,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
+interface DataPoint {
+  x: number;
+  y: number;
+  color: string;
+  r: number;
+}
+
 export function PlaceholdersAndVanishInput({
   placeholders,
   onChange,
@@ -42,10 +49,10 @@ export function PlaceholdersAndVanishInput({
       }
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [placeholders]);
+  }, [placeholders, handleVisibilityChange, startAnimation]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const newDataRef = useRef<any[]>([]);
+  const newDataRef = useRef<DataPoint[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
   const [animating, setAnimating] = useState(false);
@@ -69,26 +76,27 @@ export function PlaceholdersAndVanishInput({
 
     const imageData = ctx.getImageData(0, 0, 800, 800);
     const pixelData = imageData.data;
-    const newData: any[] = [];
+    const newData: DataPoint[] = [];
 
-    for (let t = 0; t < 800; t++) {
-      let i = 4 * t * 800;
-      for (let n = 0; n < 800; n++) {
-        let e = i + 4 * n;
+    for (let i = 0; i < 800; i++) {
+      const t = 4 * i * 800;
+      for (let e = 0; e < 800; e++) {
+        const n = t + 4 * e;
         if (
-          pixelData[e] !== 0 &&
-          pixelData[e + 1] !== 0 &&
-          pixelData[e + 2] !== 0
+          pixelData[n] !== 0 &&
+          pixelData[n + 1] !== 0 &&
+          pixelData[n + 2] !== 0
         ) {
           newData.push({
-            x: n,
-            y: t,
+            x: e,
+            y: i,
             color: [
-              pixelData[e],
-              pixelData[e + 1],
-              pixelData[e + 2],
-              pixelData[e + 3],
-            ],
+              pixelData[n],
+              pixelData[n + 1],
+              pixelData[n + 2],
+              pixelData[n + 3],
+            ].join(","),
+            r: 1,
           });
         }
       }
@@ -98,7 +106,7 @@ export function PlaceholdersAndVanishInput({
       x,
       y,
       r: 1,
-      color: `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`,
+      color: `rgba(${color})`,
     }));
   }, [value]);
 
@@ -166,17 +174,17 @@ export function PlaceholdersAndVanishInput({
     if (value && inputRef.current) {
       const maxX = newDataRef.current.reduce(
         (prev, current) => (current.x > prev ? current.x : prev),
-        0
+        0,
       );
       animate(maxX);
-      
+
       // Create a synthetic event to pass to onSubmit
       const syntheticEvent = {
         preventDefault: () => {},
-        target: { value }
+        target: { value },
       } as unknown as React.FormEvent<HTMLFormElement>;
-      
-      onSubmit && onSubmit(syntheticEvent);
+
+      if (onSubmit) onSubmit(syntheticEvent);
     }
   };
 
@@ -185,13 +193,13 @@ export function PlaceholdersAndVanishInput({
       className={cn(
         "w-full relative max-w-xl mx-auto h-12 rounded-full overflow-hidden shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),_0px_1px_0px_0px_rgba(25,28,33,0.02),_0px_0px_0px_1px_rgba(25,28,33,0.08)] transition duration-200",
         value && "bg-gray-50",
-        className
+        className,
       )}
     >
       <canvas
         className={cn(
           "absolute pointer-events-none  text-base transform scale-50 top-[20%] left-2 sm:left-8 origin-top-left filter invert dark:invert-0 pr-20",
-          !animating ? "opacity-0" : "opacity-100"
+          !animating ? "opacity-0" : "opacity-100",
         )}
         ref={canvasRef}
       />
@@ -199,7 +207,7 @@ export function PlaceholdersAndVanishInput({
         onChange={(e) => {
           if (!animating) {
             setValue(e.target.value);
-            onChange && onChange(e);
+            if (onChange) onChange(e);
           }
         }}
         onKeyDown={handleKeyDown}
@@ -208,7 +216,7 @@ export function PlaceholdersAndVanishInput({
         type="text"
         className={cn(
           "w-full relative text-sm sm:text-base z-50 border-none dark:text-white bg-transparent text-black h-full rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-10 pr-20",
-          animating && "text-transparent dark:text-transparent"
+          animating && "text-transparent dark:text-transparent",
         )}
       />
 

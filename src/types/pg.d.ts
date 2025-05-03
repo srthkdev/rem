@@ -1,4 +1,4 @@
-declare module 'pg' {
+declare module "pg" {
   export interface PoolConfig {
     user?: string;
     password?: string;
@@ -17,7 +17,10 @@ declare module 'pg' {
     constructor(config?: PoolConfig);
     connect(): Promise<PoolClient>;
     end(): Promise<void>;
-    query<T = any>(text: string, values?: any[]): Promise<QueryResult<T>>;
+    query<T = unknown>(
+      text: string,
+      values?: unknown[],
+    ): Promise<QueryResult<T>>;
   }
 
   export interface QueryResult<T> {
@@ -39,7 +42,10 @@ declare module 'pg' {
   }
 
   export interface PoolClient {
-    query<T = any>(text: string, values?: any[]): Promise<QueryResult<T>>;
+    query<T = unknown>(
+      text: string,
+      values?: unknown[],
+    ): Promise<QueryResult<T>>;
     release(err?: Error): void;
   }
-} 
+}

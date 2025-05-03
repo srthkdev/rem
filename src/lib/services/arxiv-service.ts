@@ -1,4 +1,3 @@
-import axios from "axios";
 import { ArxivPaper } from "@/lib/store/project-store";
 
 // Base URL for ArXiv API
@@ -9,35 +8,43 @@ const parseArxivResponse = (xmlString: string): ArxivPaper[] => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlString, "text/xml");
   const entries = xmlDoc.getElementsByTagName("entry");
-  
+
   const papers: ArxivPaper[] = [];
-  
+
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    
+
     // Extract paper details
     const id = entry.getElementsByTagName("id")[0]?.textContent?.trim() || "";
     const arxivId = id.split("/").pop() || "";
-    const title = entry.getElementsByTagName("title")[0]?.textContent?.trim() || "";
-    const summary = entry.getElementsByTagName("summary")[0]?.textContent?.trim() || "";
-    const published = entry.getElementsByTagName("published")[0]?.textContent?.trim() || "";
-    
+    const title =
+      entry.getElementsByTagName("title")[0]?.textContent?.trim() || "";
+    const summary =
+      entry.getElementsByTagName("summary")[0]?.textContent?.trim() || "";
+    const published =
+      entry.getElementsByTagName("published")[0]?.textContent?.trim() || "";
+
     // Extract authors
     const authorElements = entry.getElementsByTagName("author");
     const authors: string[] = [];
     for (let j = 0; j < authorElements.length; j++) {
-      const name = authorElements[j].getElementsByTagName("name")[0]?.textContent?.trim();
+      const name = authorElements[j]
+        .getElementsByTagName("name")[0]
+        ?.textContent?.trim();
       if (name) authors.push(name);
     }
-    
+
     // Extract categories
-    const categoryElements = entry.getElementsByTagNameNS("http://arxiv.org/schemas/atom", "category");
+    const categoryElements = entry.getElementsByTagNameNS(
+      "http://arxiv.org/schemas/atom",
+      "category",
+    );
     const categories: string[] = [];
     for (let j = 0; j < categoryElements.length; j++) {
       const term = categoryElements[j].getAttribute("term");
       if (term) categories.push(term);
     }
-    
+
     // Extract DOI if available
     const links = entry.getElementsByTagName("link");
     let doi = "";
@@ -50,10 +57,10 @@ const parseArxivResponse = (xmlString: string): ArxivPaper[] => {
         }
       }
     }
-    
+
     // PDF URL
     const pdfUrl = `https://arxiv.org/pdf/${arxivId}.pdf`;
-    
+
     papers.push({
       id: arxivId,
       title,
@@ -65,7 +72,7 @@ const parseArxivResponse = (xmlString: string): ArxivPaper[] => {
       doi: doi || undefined,
     });
   }
-  
+
   return papers;
 };
 
@@ -79,10 +86,10 @@ export async function searchArxivPapers(query: string): Promise<ArxivPaper[]> {
     if (!query || query.trim().length < 3) {
       return [];
     }
-    
+
     const encodedQuery = encodeURIComponent(query.trim());
     const response = await fetch(`/api/arxiv/search?query=${encodedQuery}`);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to search ArXiv: ${response.statusText}`);
     }
@@ -103,7 +110,7 @@ export async function searchArxivPapers(query: string): Promise<ArxivPaper[]> {
 export async function getArxivPaper(id: string): Promise<ArxivPaper> {
   try {
     const response = await fetch(`/api/arxiv/paper/${id}`);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to get ArXiv paper: ${response.statusText}`);
     }
@@ -117,15 +124,15 @@ export async function getArxivPaper(id: string): Promise<ArxivPaper> {
 }
 
 export async function getPaperById(id: string): Promise<ArxivPaper | null> {
-    try {
-        const response = await fetch(`/api/arxiv/paper/${id}`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch paper');
-        }
-        const paper = await response.json();
-        return paper;
-    } catch (error) {
-        console.error('Error fetching paper:', error);
-        return null;
+  try {
+    const response = await fetch(`/api/arxiv/paper/${id}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch paper");
     }
-} 
+    const paper = await response.json();
+    return paper;
+  } catch (error) {
+    console.error("Error fetching paper:", error);
+    return null;
+  }
+}

@@ -1,124 +1,127 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { PDFViewer } from "@/components/shared/pdf-viewer"
-import { AIPaperAnalysis } from "@/components/paper-analysis/ai-paper-analysis"
-import { useProjectStore } from "@/lib/store/project-store"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Clock, User, Maximize2, Minimize2, ExternalLink, Tag, FileText, Quote, Link2, MessageSquare } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { ResizeablePanel, ResizeableHandle } from "@/components/ui/resizeable"
-import * as ResizeablePrimitive from "react-resizable-panels"
-import { FlashcardList, TextSelectionPopup } from "@/components/paper-analysis/flashcard"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { PDFViewer } from "@/components/shared/pdf-viewer";
+import { AIPaperAnalysis } from "@/components/paper-analysis/ai-paper-analysis";
+import { useProjects } from "@/hooks/useProjects";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowLeft,
+  Clock,
+  User,
+  ExternalLink,
+  Tag,
+  MessageSquare,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ResizeablePanel, ResizeableHandle } from "@/components/ui/resizeable";
+import * as ResizeablePrimitive from "react-resizable-panels";
+import {
+  FlashcardList,
+  TextSelectionPopup,
+} from "@/components/paper-analysis/flashcard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ProjectPageProps {
-  params: Promise<{ id: string }> & { id: string }
+  params: Promise<{ id: string }> & { id: string };
 }
 
 export default function ProjectPage({ params }: ProjectPageProps) {
-  const router = useRouter()
-  const unwrappedParams = React.use(params)
-  const id = unwrappedParams.id
-  const [loading, setLoading] = useState(true)
-  const [expandedView, setExpandedView] = useState<"pdf" | "ai" | null>(null)
-  const [usePDFFallback, setUsePDFFallback] = useState(false)
-  const [useGoogleViewer, setUseGoogleViewer] = useState(false)
-  
-  // Get project from store
-  const { getProject } = useProjectStore()
-  const project = getProject(id)
-  
+  const router = useRouter();
+  const unwrappedParams = React.use(params);
+  const id = unwrappedParams.id;
+  const [loading, setLoading] = useState(true);
+  const [expandedView, setExpandedView] = useState<"pdf" | "ai" | null>(null);
+  const [usePDFFallback, setUsePDFFallback] = useState(false);
+  const [useGoogleViewer, setUseGoogleViewer] = useState(false);
+
+  // Get project from React Query
+  const { data: projects = [], isLoading } = useProjects();
+  const project = projects.find((p) => p.id === id);
+
   useEffect(() => {
     if (!project && !loading) {
-      toast.error("Project not found")
-      router.push("/project")
+      toast.error("Project not found");
+      router.push("/project");
     } else {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [project, router, loading])
-  
+  }, [project, router, loading]);
+
   // Auto-switch to direct view if we detect loading issues
   useEffect(() => {
     // After 5 seconds, if PDF is still struggling to load, auto-switch to direct view
     if (project && project.paper && project.paper.pdfUrl && !usePDFFallback) {
       const timer = setTimeout(() => {
-        setUsePDFFallback(true)
-      }, 5000)
-      
-      return () => clearTimeout(timer)
+        setUsePDFFallback(true);
+      }, 5000);
+
+      return () => clearTimeout(timer);
     }
-  }, [project, usePDFFallback])
-  
+  }, [project, usePDFFallback]);
+
   // Update on initial load to ensure layout is correct
   useEffect(() => {
     function updateSidebarClass() {
-      const sidebar = document.querySelector('aside');
-      
+      const sidebar = document.querySelector("aside");
+
       // Directly update the body class based on sidebar state
-      if (sidebar && sidebar.classList.contains('sidebar-collapsed')) {
-        document.body.classList.add('sidebar-collapsed');
+      if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
+        document.body.classList.add("sidebar-collapsed");
       } else {
-        document.body.classList.remove('sidebar-collapsed');
+        document.body.classList.remove("sidebar-collapsed");
       }
     }
-    
+
     // Run immediately on component mount
     updateSidebarClass();
   }, []);
-  
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
-  
+    });
+  };
+
   const handleBack = () => {
-    router.push("/project")
-  }
+    router.push("/project");
+  };
 
   const toggleExpandView = (section: "pdf" | "ai") => {
-    setExpandedView(expandedView === section ? null : section)
-  }
-  
+    setExpandedView(expandedView === section ? null : section);
+  };
+
   // Add paper categories if not present
-  const defaultCategories = ["Machine Learning", "Neural Networks", "Computer Vision"]
-  
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin h-8 w-8 border-4 border-[#C96442] border-t-transparent rounded-full"></div>
-      </div>
-    )
-  }
-  
-  if (!project) {
-    return null // This will be handled by the useEffect
-  }
-  
+  const defaultCategories = [
+    "Machine Learning",
+    "Neural Networks",
+    "Computer Vision",
+  ];
+
+  if (isLoading) return <div>Loading project...</div>;
+  if (!project) return <div>Project not found.</div>;
+
   return (
     <div className="relative">
       <TextSelectionPopup projectId={id} />
-      
+
       <Tabs defaultValue="chat" className="w-full">
         <TabsList>
           <TabsTrigger value="chat">Chat</TabsTrigger>
           <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="chat">
-          {/* Existing chat content */}
-        </TabsContent>
-        
+
+        <TabsContent value="chat">{/* Existing chat content */}</TabsContent>
+
         <TabsContent value="flashcards" className="mt-4">
           <FlashcardList projectId={id} />
         </TabsContent>
       </Tabs>
-      
+
       <main className="project-detail-layout bg-[#FAF9F6] dark:bg-[#262625]">
         {/* Header with project info */}
         <header className="flex-shrink-0 border-b border-[#E3DACC] dark:border-[#BFB8AC]/30 bg-[#FAF9F6] dark:bg-[#262625] z-10 shadow-sm">
@@ -152,30 +155,35 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             </div>
 
             {/* Middle section: Categories */}
-            {project.paper?.categories && project.paper.categories.length > 0 && (
-              <div className="hidden md:flex flex-col items-center justify-center min-w-[200px]">
-                <div className="flex items-center gap-2">
-                  <Tag className="h-3.5 w-3.5 text-[#C96442]" />
-                  <div className="flex flex-wrap gap-2 text-xs justify-center">
-                    {project.paper.categories.map((category, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-0.5 rounded-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/20 text-[#262625]/70 dark:text-[#BFB8AC]"
-                      >
-                        {category}
-                      </span>
-                    ))}
+            {project.paper?.categories &&
+              project.paper.categories.length > 0 && (
+                <div className="hidden md:flex flex-col items-center justify-center min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-3.5 w-3.5 text-[#C96442]" />
+                    <div className="flex flex-wrap gap-2 text-xs justify-center">
+                      {project.paper.categories.map(
+                        (category: string, index: number) => (
+                          <span
+                            key={index}
+                            className="px-2 py-0.5 rounded-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/20 text-[#262625]/70 dark:text-[#BFB8AC]"
+                          >
+                            {category}
+                          </span>
+                        ),
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Right section: Authors and Date */}
             {project.paper && (
               <div className="hidden lg:flex flex-col items-end gap-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
                 <div className="flex items-center gap-1.5">
                   <Clock className="h-4 w-4 text-[#C96442]" />
-                  <span>{formatDate(new Date(project.paper.publishedDate))}</span>
+                  <span>
+                    {formatDate(new Date(project.paper.publishedDate))}
+                  </span>
                 </div>
                 {project.paper.authors && project.paper.authors.length > 0 && (
                   <div className="flex items-center gap-1.5">
@@ -190,7 +198,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             )}
           </div>
         </header>
-        
+
         {/* Main Content Area - Takes remaining height */}
         <div className="project-detail-content">
           <ResizeablePrimitive.PanelGroup
@@ -198,19 +206,19 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             className="h-full"
           >
             {/* PDF Viewer */}
-            <ResizeablePanel 
+            <ResizeablePanel
               defaultSize={60}
               minSize={30}
               className={cn(
                 "h-full border-r border-[#E3DACC] dark:border-[#BFB8AC]/30",
-                expandedView === "pdf" ? "flex-1" : (
-                  expandedView === "ai" ? "hidden lg:block lg:w-0 overflow-hidden" : ""
-                )
+                expandedView === "pdf"
+                  ? "flex-1"
+                  : expandedView === "ai"
+                    ? "hidden lg:block lg:w-0 overflow-hidden"
+                    : "",
               )}
             >
               <div className="relative flex flex-col h-full w-full overflow-hidden">
-                
-                
                 {project.paper?.pdfUrl ? (
                   usePDFFallback ? (
                     <div className="relative h-full w-full bg-white flex flex-col">
@@ -221,12 +229,14 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                           onClick={() => setUseGoogleViewer(!useGoogleViewer)}
                           className="h-8 px-2 bg-white/90 backdrop-blur-sm dark:bg-[#262625]/90 border-[#E3DACC] dark:border-[#BFB8AC]/30 shadow-sm"
                         >
-                          {useGoogleViewer ? "Use Direct View" : "Try Google Viewer"}
+                          {useGoogleViewer
+                            ? "Use Direct View"
+                            : "Try Google Viewer"}
                         </Button>
                       </div>
                       {useGoogleViewer ? (
-                        <iframe 
-                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(project.paper?.pdfUrl || '')}&embedded=true`}
+                        <iframe
+                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(project.paper?.pdfUrl || "")}&embedded=true`}
                           className="w-full h-full border-0"
                           title={`${project.title} - Google Docs Viewer`}
                         />
@@ -251,9 +261,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                           Use Direct View
                         </Button>
                       </div>
-                      {(expandedView === "pdf" || (!expandedView && expandedView !== "ai")) && (
-                        <PDFViewer 
-                          url={project.paper?.pdfUrl} 
+                      {(expandedView === "pdf" ||
+                        (!expandedView && expandedView !== "ai")) && (
+                        <PDFViewer
+                          url={project.paper?.pdfUrl}
                           onFallbackRequest={() => setUsePDFFallback(true)}
                           className="w-full h-full"
                         />
@@ -270,26 +281,27 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               </div>
             </ResizeablePanel>
 
-            {!expandedView && (
-              <ResizeableHandle withHandle />
-            )}
-            
+            {!expandedView && <ResizeableHandle withHandle />}
+
             {/* AI Analysis */}
-            <ResizeablePanel 
+            <ResizeablePanel
               defaultSize={40}
               minSize={30}
               className={cn(
                 "h-full",
-                expandedView === "ai" ? "flex-1" : (
-                  expandedView === "pdf" ? "hidden lg:block lg:w-0 overflow-hidden" : ""
-                )
+                expandedView === "ai"
+                  ? "flex-1"
+                  : expandedView === "pdf"
+                    ? "hidden lg:block lg:w-0 overflow-hidden"
+                    : "",
               )}
             >
               <div className="relative flex flex-col h-full w-full overflow-hidden">
-                
-                <AIPaperAnalysis 
-                  userQuery={project.description} 
-                  paperTitle={project.paper ? project.paper.title : project.title} 
+                <AIPaperAnalysis
+                  userQuery={project.description}
+                  paperTitle={
+                    project.paper ? project.paper.title : project.title
+                  }
                   projectId={id}
                 />
               </div>
@@ -298,5 +310,5 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </main>
     </div>
-  )
-} 
+  );
+}

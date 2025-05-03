@@ -1,39 +1,83 @@
-import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/database/db";
+import { projects, sessions, users } from "@/database/schema";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 // Validation schema for project creation
 const createProjectSchema = z.object({
-    title: z.string(),
-    arxivId: z.string(),
-    abstract: z.string(),
-    authors: z.array(z.string()),
-    pdfUrl: z.string().url(),
-    publishedDate: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  paper: z.any().optional(),
+  arxivId: z.string().optional(),
+  abstract: z.string().optional(),
+  authors: z.array(z.string()).optional(),
+  pdfUrl: z.string().url().optional(),
+  publishedDate: z.string().optional(),
 });
 
-export async function POST(req: Request) {
-    try {
-        const body = await req.json();
-        
-        // Validate request body
-        const validatedData = createProjectSchema.parse(body);
-        
-        // In a real app, you would save this to a database
-        // For now, we'll just return a mock response
-        const project = {
-            id: uuidv4(),
-            ...validatedData,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
+// Helper to get user from session-token cookie
+async function getUserFromRequest(req: NextRequest) {
+  const sessionToken = req.cookies.get("session-token")?.value;
+  if (!sessionToken) return null;
+  const sessionRows = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.token, sessionToken));
+  if (sessionRows.length === 0 || sessionRows[0].expiresAt < new Date())
+    return null;
+  const userRows = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, sessionRows[0].userId));
+  if (userRows.length === 0) return null;
+  return userRows[0];
+}
 
-        return NextResponse.json(project, { status: 201 });
-    } catch (error) {
-        console.error('Error creating project:', error);
-        return NextResponse.json(
-            { error: 'Failed to create project' },
-            { status: 500 }
-        );
-    }
-} 
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const body = await req.json();
+    const validatedData = createProjectSchema.parse(body);
+    const now = new Date();
+    const projectId = `proj-${Date.now()}`;
+    await db.insert(projects).values({
+      id: projectId,
+      userId: user.id,
+      title: validatedData.title,
+      description: validatedData.description || "",
+      paper: validatedData.paper || null,
+      createdAt: now,
+      updatedAt: now,
+    });
+    // Optionally, you can store arXiv fields in a separate table or as JSON in description
+    return NextResponse.json({ success: true, id: projectId }, { status: 201 });
+  } catch (error) {
+    console.error("Error creating project:", error);
+    return NextResponse.json(
+      { error: "Failed to create project" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userProjects = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.userId, user.id));
+    return NextResponse.json(userProjects, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch projects" },
+      { status: 500 },
+    );
+  }
+}

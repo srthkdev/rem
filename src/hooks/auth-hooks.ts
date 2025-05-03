@@ -1,17 +1,22 @@
 "use client";
 
-import { authClient, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut } from "@/lib/auth-client";
+import {
+  authClient,
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithGoogle,
+  signOut,
+} from "@/lib/auth-client";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SignInInput, SignUpInput } from "@/lib/validator";
-import { useEffect, useState } from "react"
-import type { User, Session } from "@/lib/auth-client"
+import { useEffect, useState } from "react";
 
 // Constants for query keys
 const AUTH_QUERY_KEYS = {
-  SESSION: ['auth', 'session'],
+  SESSION: ["auth", "session"],
 };
 
 /**
@@ -39,7 +44,8 @@ export const useSession = () => {
     error,
     isLoading,
     isAuthenticated,
-    refresh: () => queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.SESSION }),
+    refresh: () =>
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.SESSION }),
   };
 };
 
@@ -50,7 +56,7 @@ export const useSignIn = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUser } = useAuthStore();
-  const redirectTo = searchParams?.get('redirectTo') || '/project/new';
+  const redirectTo = searchParams?.get("redirectTo") || "/project/new";
 
   return useMutation({
     mutationFn: async (data: SignInInput) => {
@@ -83,7 +89,7 @@ export const useSignUp = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUser } = useAuthStore();
-  const redirectTo = searchParams?.get('redirectTo') || '/project/new';
+  const redirectTo = searchParams?.get("redirectTo") || "/project/new";
 
   return useMutation({
     mutationFn: async (data: SignUpInput) => {
@@ -145,7 +151,7 @@ export const useSignOut = () => {
     mutationFn: async () => {
       // First update store
       setUser(null);
-      
+
       // Then call signOut API
       return await signOut();
     },
@@ -153,23 +159,25 @@ export const useSignOut = () => {
       if (result.success) {
         // Clear query cache
         queryClient.clear();
-        
+
         // Ensure localStorage is cleared completely
         if (typeof window !== "undefined") {
           // Clear all auth-related items
           localStorage.removeItem("user-session");
           localStorage.removeItem("auth-storage");
-          
+
           // Clear any potential cookies - using document.cookie
-          document.cookie = "auth-storage=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-          document.cookie = "user-session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie =
+            "auth-storage=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie =
+            "user-session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         }
-        
+
         // Wait a moment to ensure all state is cleared before redirect
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         toast.success("Signed out successfully");
-        
+
         // Force a hard navigation to clear React Router state
         window.location.href = "/";
       } else {
@@ -186,7 +194,7 @@ export const useSignOut = () => {
 /**
  * Hook for requiring authentication, with redirection
  */
-export const useRequireAuth = (redirectTo = '/auth/sign-in') => {
+export const useRequireAuth = (redirectTo = "/auth/sign-in") => {
   const { user, isLoading, isAuthenticated } = useAuthStore();
   const router = useRouter();
 
@@ -194,7 +202,7 @@ export const useRequireAuth = (redirectTo = '/auth/sign-in') => {
     if (!isLoading && !isAuthenticated) {
       // Redirect to sign in page
       const signInPath = new URL(redirectTo, window.location.origin);
-      signInPath.searchParams.set('redirectTo', window.location.pathname);
+      signInPath.searchParams.set("redirectTo", window.location.pathname);
       router.push(signInPath.pathname + signInPath.search);
     }
   }, [isLoading, isAuthenticated, router, redirectTo]);
@@ -203,19 +211,19 @@ export const useRequireAuth = (redirectTo = '/auth/sign-in') => {
 };
 
 // Create stub functions for all the other exports
-export const usePrefetchSession = () => {}
-export const useToken = () => null
-export const useListAccounts = () => ({ data: [] })
-export const useListSessions = () => ({ data: [] })
-export const useListDeviceSessions = () => ({ data: [] })
-export const useListPasskeys = () => ({ data: [] })
-export const useUpdateUser = () => ({ mutate: async () => ({}) })
-export const useUnlinkAccount = () => ({ mutate: async () => ({}) })
-export const useRevokeOtherSessions = () => ({ mutate: async () => ({}) })
-export const useRevokeSession = () => ({ mutate: async () => ({}) })
-export const useRevokeSessions = () => ({ mutate: async () => ({}) })
-export const useSetActiveSession = () => ({ mutate: async () => ({}) })
-export const useRevokeDeviceSession = () => ({ mutate: async () => ({}) })
-export const useDeletePasskey = () => ({ mutate: async () => ({}) })
+export const usePrefetchSession = () => {};
+export const useToken = () => null;
+export const useListAccounts = () => ({ data: [] });
+export const useListSessions = () => ({ data: [] });
+export const useListDeviceSessions = () => ({ data: [] });
+export const useListPasskeys = () => ({ data: [] });
+export const useUpdateUser = () => ({ mutate: async () => ({}) });
+export const useUnlinkAccount = () => ({ mutate: async () => ({}) });
+export const useRevokeOtherSessions = () => ({ mutate: async () => ({}) });
+export const useRevokeSession = () => ({ mutate: async () => ({}) });
+export const useRevokeSessions = () => ({ mutate: async () => ({}) });
+export const useSetActiveSession = () => ({ mutate: async () => ({}) });
+export const useRevokeDeviceSession = () => ({ mutate: async () => ({}) });
+export const useDeletePasskey = () => ({ mutate: async () => ({}) });
 export const useAuthQuery = () => ({});
 export const useAuthMutation = () => ({});

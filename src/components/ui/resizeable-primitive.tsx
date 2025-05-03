@@ -1,3 +1,3 @@
-import * as ResizeablePrimitive from "react-resizable-panels"
+import * as ResizeablePrimitive from "react-resizable-panels";
 
-export { ResizeablePrimitive } 
+export { ResizeablePrimitive };
