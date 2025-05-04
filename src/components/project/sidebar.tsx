@@ -17,6 +17,7 @@ import {
   Moon,
   Sun,
   Laptop,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -32,6 +33,8 @@ import {
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useProjects } from "@/hooks/useProjects";
 import { useSignOut } from "@/hooks/auth-hooks";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProjectProps {
   id: string;
@@ -124,6 +127,19 @@ export function Sidebar({
   const sortedProjects = [...projects].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
+
+  // Show Sonner toast and loading spinner while loading projects
+  useEffect(() => {
+    let toastId: string | number | undefined;
+    if (projectsLoading) {
+      toastId = toast.loading("Loading your projects...");
+    } else {
+      toast.dismiss();
+    }
+    return () => {
+      toast.dismiss();
+    };
+  }, [projectsLoading]);
 
   return (
     <>
@@ -384,7 +400,19 @@ export function Sidebar({
         {isRecentsOpen && (
           <ScrollArea className="flex-1 px-2">
             <div className="flex flex-col space-y-1 py-1">
-              {sortedProjects.length > 0 ? (
+              {projectsLoading ? (
+                <div className="flex flex-col space-y-2 py-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col items-start justify-start h-auto py-2 px-3 rounded-md border border-transparent bg-[#E3DACC]/20 dark:bg-[#BFB8AC]/10 animate-pulse"
+                    >
+                      <Skeleton className="h-5 w-40 mb-2 rounded bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/20" />
+                      <Skeleton className="h-3 w-28 rounded bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10" />
+                    </div>
+                  ))}
+                </div>
+              ) : sortedProjects.length > 0 ? (
                 sortedProjects.map((project) => (
                   <Button
                     key={project.id}

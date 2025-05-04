@@ -15,6 +15,7 @@ import { create } from "zustand";
 import { cn } from "@/lib/utils";
 import { useProjects } from "@/hooks/useProjects";
 import type { Project } from "@/hooks/useProjects";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Create Zustand store for selection state
 interface ProjectSelectionState {
@@ -190,8 +191,20 @@ export default function ProjectsPage() {
       </div>
 
       {projectsLoading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <p>Loading projects...</p>
+        <div className="flex flex-col space-y-2 flex-1 justify-center py-12">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="p-4 border-2 border-[#E3DACC] dark:border-[#BFB8AC]/30 rounded-lg bg-[#E3DACC]/20 dark:bg-[#BFB8AC]/10 animate-pulse"
+            >
+              <Skeleton className="h-6 w-1/3 mb-3 rounded bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/20" />
+              <Skeleton className="h-4 w-1/2 mb-2 rounded bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10" />
+              <div className="flex gap-4 mt-4">
+                <Skeleton className="h-4 w-24 rounded bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10" />
+                <Skeleton className="h-4 w-20 rounded bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
