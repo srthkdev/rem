@@ -170,6 +170,8 @@ export default function NewProject() {
       toast.error("No paper selected");
       return;
     }
+    setIsCreating(true);
+    const toastId = toast.loading("Creating project...");
     createProjectMutation.mutate(
       {
         title: paper.title,
@@ -178,8 +180,10 @@ export default function NewProject() {
       },
       {
         onSuccess: (data) => {
+          toast.dismiss(toastId);
           toast.success("Project created successfully!");
           queryClient.invalidateQueries({ queryKey: ["projects"] });
+          setIsCreating(false);
           if (data && data.id) {
             router.push(`/project/${data.id}`);
           } else {
@@ -187,7 +191,9 @@ export default function NewProject() {
           }
         },
         onError: () => {
+          toast.dismiss(toastId);
           toast.error("Failed to create project. Please try again.");
+          setIsCreating(false);
         },
       },
     );

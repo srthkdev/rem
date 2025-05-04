@@ -138,7 +138,7 @@ export default function ProjectsPage() {
   };
 
   return (
-    <div className="container max-w-5xl py-8 px-4 md:px-6 h-full flex flex-col mx-auto">
+    <div className="container max-w-5xl py-8 px-4 md:px-6 h-screen flex flex-col mx-auto">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-4xl font-bold font-[family-name:var(--font-instrument-serif)] text-[#262625] dark:text-[#FAF9F6]">
           Your projects
@@ -224,7 +224,7 @@ export default function ProjectsPage() {
             />
           </div>
 
-          <div className="flex flex-col flex-grow overflow-hidden">
+          <div className="flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between mb-3 px-1">
               <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
                 You have {projects.length} projects with REM
@@ -251,7 +251,7 @@ export default function ProjectsPage() {
               )}
             </div>
 
-            <ScrollArea className="flex-grow" ref={containerRef}>
+            <ScrollArea className="flex-1 min-h-0 max-h-full pb-8" ref={containerRef}>
               <div className="space-y-2">
                 {filteredProjects.map((project) => (
                   <Card

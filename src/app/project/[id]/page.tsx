@@ -36,19 +36,31 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const [expandedView, setExpandedView] = useState<"pdf" | "ai" | null>(null);
   const [usePDFFallback, setUsePDFFallback] = useState(false);
   const [useGoogleViewer, setUseGoogleViewer] = useState(false);
+  const [waited, setWaited] = useState(false);
 
   // Get project from React Query
   const { data: projects = [], isLoading } = useProjects();
   const project = projects.find((p) => p.id === id);
 
   useEffect(() => {
-    if (!project && !loading) {
+    let timeout: NodeJS.Timeout;
+    if (!project && !waited) {
+      // Wait up to 5 seconds for the project to appear
+      timeout = setTimeout(() => {
+        setWaited(true);
+      }, 5000);
+    }
+    return () => clearTimeout(timeout);
+  }, [project, waited]);
+
+  useEffect(() => {
+    if (!project && waited) {
       toast.error("Project not found");
       router.push("/project");
-    } else {
+    } else if (project) {
       setLoading(false);
     }
-  }, [project, router, loading]);
+  }, [project, router, waited]);
 
   // Auto-switch to direct view if we detect loading issues
   useEffect(() => {
@@ -102,7 +114,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     "Computer Vision",
   ];
 
-  if (isLoading) return <div>Loading project...</div>;
+  if (isLoading || (!project && !waited)) return <div className="flex items-center justify-center h-screen text-xl">Loading project...</div>;
   if (!project) return <div>Project not found.</div>;
 
   return (
