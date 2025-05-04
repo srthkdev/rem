@@ -77,10 +77,19 @@ export default function Home() {
   const handleCreateProject = () => {
     // Redirect to sign in page with return URL to create project
     if (selectedPaper) {
-      // Format: /auth/signin?returnUrl=%2Fproject%2Fnew%3Fpaper%3DPAPER_ID
-      const returnUrl = encodeURIComponent(
-        `/project/new?paper=${selectedPaper.id}`,
-      );
+      // Store pending project in sessionStorage
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          "pendingProject",
+          JSON.stringify({
+            title: selectedPaper.title,
+            description: query,
+            paper: selectedPaper,
+          }),
+        );
+      }
+      // Redirect to sign in with returnUrl to /project/new
+      const returnUrl = encodeURIComponent(`/project/new`);
       router.push(`/auth/sign-in?returnUrl=${returnUrl}`);
       toast.info("Please sign in to create a project");
     }

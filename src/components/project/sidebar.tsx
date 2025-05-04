@@ -450,7 +450,7 @@ export function Sidebar({
                     onClick={() => router.push("/project/new")}
                     variant="outline"
                     size="sm"
-                    className="bg-transparent border-[#C96442] text-[#C96442] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#C96442]"
+                    className="dark:bg-[#262625] border-[#C96442] text-[#C96442] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#C96442]"
                   >
                     Create your first project
                   </Button>

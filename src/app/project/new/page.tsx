@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { toast } from "sonner";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { IntroducingRemAI } from "@/components/shared/introducing-rem-ai";
 import { searchArxivPapers } from "@/lib/services/arxiv-service";
 
 import { ArxivPaper } from "@/lib/store/project-store";
-import { useCreateProject } from "@/hooks/useProjects";
+import { useCreateProject, CreateProjectInput } from "@/hooks/useProjects";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import { PaperSearchGrid } from "@/components/project/paper-search-grid";
@@ -46,6 +46,13 @@ const getGreeting = () => {
   return "Good Evening";
 };
 
+// Zod schema for pending project
+const PendingProjectSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  paper: z.any(),
+});
+
 export default function NewProject() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -58,6 +65,8 @@ export default function NewProject() {
   const [selectedPaper, setSelectedPaper] = useState<ArxivPaper | null>(null);
   const [searchResults, setSearchResults] = useState<ArxivPaper[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [pendingProjectLoading, setPendingProjectLoading] = useState(false);
+  const hasCreated = useRef(false);
 
   // Project creation mutation
   const createProjectMutation = useCreateProject();
@@ -67,6 +76,41 @@ export default function NewProject() {
     ? user.name.split(" ")[0].charAt(0).toUpperCase() +
       user.name.split(" ")[0].slice(1)
     : user?.email?.split("@")?.[0] || "User";
+
+  // Stable mutation for sessionStorage-based creation
+  type ProjectCreateResponse = { id?: string; success?: boolean };
+  const sessionMutation = useMutation<
+    ProjectCreateResponse,
+    Error,
+    CreateProjectInput
+  >({
+    mutationFn: async (input) => {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!res.ok) throw new Error("Failed to create project");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      sessionStorage.removeItem("pendingProject");
+      sessionStorage.removeItem("pendingProjectProcessing");
+      setPendingProjectLoading(false);
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      if (data && data.id) {
+        router.replace(`/project/${data.id}`);
+      } else {
+        router.replace("/project");
+      }
+    },
+    onError: () => {
+      sessionStorage.removeItem("pendingProject");
+      sessionStorage.removeItem("pendingProjectProcessing");
+      setPendingProjectLoading(false);
+      router.replace("/project");
+    },
+  });
 
   // Handle paper ID from URL on component mount
   useEffect(() => {
@@ -224,6 +268,41 @@ export default function NewProject() {
   const handleSelectPaper = (paper: ArxivPaper) => {
     setSelectedPaper(paper);
   };
+
+  // On mount, check for pending project in sessionStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const pending = sessionStorage.getItem("pendingProject");
+    const processing = sessionStorage.getItem("pendingProjectProcessing");
+    if (!pending || processing === "true") return;
+    try {
+      const parsed = JSON.parse(pending);
+      const validated = PendingProjectSchema.safeParse(parsed);
+      if (validated.success) {
+        sessionStorage.setItem("pendingProjectProcessing", "true");
+        setPendingProjectLoading(true);
+        sessionMutation.mutate(validated.data);
+      } else {
+        sessionStorage.removeItem("pendingProject");
+        sessionStorage.removeItem("pendingProjectProcessing");
+      }
+    } catch (e) {
+      sessionStorage.removeItem("pendingProject");
+      sessionStorage.removeItem("pendingProjectProcessing");
+    }
+    // Only run on mount
+    // eslint-disable-next-line
+  }, []);
+
+  // Show spinner only if a project is actually being created
+  if (pendingProjectLoading || sessionMutation.status === "pending") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin h-8 w-8 border-4 border-[#C96442] border-t-transparent rounded-full mb-4"></div>
+        <p className="text-lg text-[#C96442]">Creating your project...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 pt-16 pb-8 max-w-7xl mx-auto w-full relative">

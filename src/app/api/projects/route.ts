@@ -3,6 +3,7 @@ import { db } from "@/database/db";
 import { projects, sessions, users } from "@/database/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
 
 // Validation schema for project creation
 const createProjectSchema = z.object({
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const validatedData = createProjectSchema.parse(body);
     const now = new Date();
-    const projectId = `proj-${Date.now()}`;
+    const projectId = uuidv4();
     await db.insert(projects).values({
       id: projectId,
       userId: user.id,

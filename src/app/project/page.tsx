@@ -61,7 +61,11 @@ export default function ProjectsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Access projects from React Query
-  const { data: projects = [], isLoading: projectsLoading } = useProjects();
+  const { data: projectsRaw = [], isLoading: projectsLoading } = useProjects();
+  // Sort projects by createdAt descending (newest first)
+  const projects = [...projectsRaw].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   // Access selection state from Zustand store
   const {
