@@ -264,7 +264,10 @@ export default function ProjectsPage() {
               )}
             </div>
 
-            <ScrollArea className="flex-1 min-h-0 max-h-full pb-8" ref={containerRef}>
+            <ScrollArea
+              className="flex-1 min-h-0 max-h-full pb-8"
+              ref={containerRef}
+            >
               <div className="space-y-2">
                 {filteredProjects.map((project) => (
                   <Card

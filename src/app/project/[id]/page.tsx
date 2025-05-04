@@ -114,7 +114,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     "Computer Vision",
   ];
 
-  if (isLoading || (!project && !waited)) return <div className="flex items-center justify-center h-screen text-xl">Loading project...</div>;
+  if (isLoading || (!project && !waited))
+    return (
+      <div className="flex items-center justify-center h-screen text-xl">
+        Loading project...
+      </div>
+    );
   if (!project) return <div>Project not found.</div>;
 
   return (
