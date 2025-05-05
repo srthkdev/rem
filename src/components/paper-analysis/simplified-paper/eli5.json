@@ -1,0 +1,16 @@
+{
+  "sections": [
+    {
+      "title": "What is a Transformer?",
+      "content": "A transformer is like a smart robot that can read and understand lots of words at once, just like how you can look at a whole picture instead of one piece at a time."
+    },
+    {
+      "title": "How Does It Work?",
+      "content": "It pays attention to all the words in a sentence, so it knows which words are important, just like how you listen to your teacher in class."
+    },
+    {
+      "title": "Why Is It Special?",
+      "content": "Transformers can learn really fast and help computers talk, write stories, and even answer questions!"
+    }
+  ]
+} 

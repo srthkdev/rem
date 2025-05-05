@@ -9,12 +9,12 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ResearchAnalysisTab } from "./research-analysis-tab";
 import { AIPodcastTab } from "./ai-podcast-tab";
 import { VisualizationTab } from "./visualization-tab";
 import { FlashcardsTab } from "./flashcard";
 import { AIChatTab } from "./ai-chat-tab";
 import { cn } from "@/lib/utils";
+import { SimplifiedPaper } from "./simplified-paper";
 
 interface AIPaperAnalysisProps {
   userQuery: string;
@@ -60,9 +60,9 @@ export function AIPaperAnalysis({
   const tabs = [
     {
       id: "analysis" as Tab,
-      label: "Research Analysis",
+      label: "Simplified Paper",
       icon: Brain,
-      content: <ResearchAnalysisTab />,
+      content: <SimplifiedPaper />,
     },
     {
       id: "chat" as Tab,

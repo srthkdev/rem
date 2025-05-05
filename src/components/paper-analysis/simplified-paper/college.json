@@ -1,0 +1,16 @@
+{
+  "sections": [
+    {
+      "title": "Introduction to Transformers",
+      "content": "Transformers are a type of neural network architecture that use self-attention mechanisms to process sequences of data in parallel, making them highly efficient for tasks like language modeling and translation."
+    },
+    {
+      "title": "Key Components",
+      "content": "The main parts of a transformer are the encoder and decoder, each built from layers of self-attention and feed-forward networks. Positional encoding helps the model understand word order."
+    },
+    {
+      "title": "Advantages",
+      "content": "Transformers allow for much faster training and better performance on large datasets compared to older models like RNNs and LSTMs."
+    }
+  ]
+} 

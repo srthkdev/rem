@@ -1,0 +1,16 @@
+{
+  "sections": [
+    {
+      "title": "Transformer Model Overview",
+      "content": "The transformer architecture, introduced by Vaswani et al. (2017), leverages multi-head self-attention and position-wise feed-forward layers to model long-range dependencies in sequential data without recurrence."
+    },
+    {
+      "title": "Self-Attention Mechanism",
+      "content": "Self-attention computes context-aware representations by weighting input tokens according to learned attention scores, enabling efficient parallelization and improved gradient flow."
+    },
+    {
+      "title": "Architectural Advantages",
+      "content": "Transformers outperform RNNs and CNNs in NLP tasks due to their scalability, parallel training, and ability to capture global context, making them the foundation for models like BERT and GPT."
+    }
+  ]
+} 
