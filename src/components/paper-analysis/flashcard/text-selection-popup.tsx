@@ -1,16 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Plus } from "lucide-react";
+import { MessageSquare, SquareStack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FlashcardForm } from "./flashcard-form";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface TextSelectionPopupProps {
   projectId: string;
+  setActiveTab?: (
+    tab: "analysis" | "podcast" | "visualization" | "flashcards" | "chat",
+  ) => void;
 }
 
-export function TextSelectionPopup({ projectId }: TextSelectionPopupProps) {
+export function TextSelectionPopup({
+  projectId,
+  setActiveTab,
+}: TextSelectionPopupProps) {
   const [selectedText, setSelectedText] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [popupStyle, setPopupStyle] = useState({
@@ -22,6 +29,7 @@ export function TextSelectionPopup({ projectId }: TextSelectionPopupProps) {
   // Use refs to track popup state without re-renders
   const popupRef = useRef<HTMLDivElement>(null);
   const selectedTextRef = useRef("");
+  const router = useRouter();
 
   // Create a stable function for updating popup
   const updatePopup = useCallback(
@@ -149,22 +157,42 @@ export function TextSelectionPopup({ projectId }: TextSelectionPopupProps) {
     }
   };
 
+  const handleAddToAIChat = () => {
+    const text = selectedTextRef.current;
+    if (text.trim()) {
+      localStorage.setItem("ai-chat-draft", text);
+      updatePopup("none");
+      if (setActiveTab) setActiveTab("chat");
+    }
+  };
+
   return (
     <>
       <div
         ref={popupRef}
-        className="fixed z-[1000] bg-white dark:bg-gray-800 border-2 border-[#C96442] rounded-lg"
+        className="fixed z-[1000] bg-transparent rounded-lg"
         style={popupStyle}
       >
-        <Button
-          size="sm"
-          variant="default"
-          className="flex items-center gap-2 bg-[#C96442] hover:bg-[#C96442]/90"
-          onClick={handleCreateFlashcard}
-        >
-          <Plus className="h-4 w-4" />
-          Add to Flashcards
-        </Button>
+        <div className="flex flex-col gap-2 p-2">
+          <Button
+            size="sm"
+            variant="default"
+            className="flex items-center gap-2 bg-[#C96442] hover:bg-[#C96442]/90"
+            onClick={handleCreateFlashcard}
+          >
+            <SquareStack className="h-4 w-4" />
+            Add to Flashcards
+          </Button>
+          <Button
+            size="sm"
+            variant="default"
+            className="flex items-center gap-2 bg-[#C96442] hover:bg-[#C96442]/90"
+            onClick={handleAddToAIChat}
+          >
+            <MessageSquare className="h-4 w-4" />
+            Add to AI Chat
+          </Button>
+        </div>
       </div>
 
       <FlashcardForm

@@ -21,6 +21,10 @@ interface AIPaperAnalysisProps {
   paperTitle: string;
   className?: string;
   projectId: string;
+  activeTab: "analysis" | "podcast" | "visualization" | "flashcards" | "chat";
+  setActiveTab: (
+    tab: "analysis" | "podcast" | "visualization" | "flashcards" | "chat",
+  ) => void;
 }
 
 type Tab = "analysis" | "podcast" | "visualization" | "flashcards" | "chat";
@@ -30,8 +34,9 @@ export function AIPaperAnalysis({
   paperTitle,
   className,
   projectId,
+  activeTab,
+  setActiveTab,
 }: AIPaperAnalysisProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("analysis");
   const [showLabels, setShowLabels] = useState(true);
 
   // Handle window resize

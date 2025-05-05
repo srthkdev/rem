@@ -37,6 +37,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const [usePDFFallback, setUsePDFFallback] = useState(false);
   const [useGoogleViewer, setUseGoogleViewer] = useState(false);
   const [waited, setWaited] = useState(false);
+  const [activeTab, setActiveTab] = useState<
+    "analysis" | "podcast" | "visualization" | "flashcards" | "chat"
+  >("analysis");
 
   // Get project from React Query
   const { data: projects = [], isLoading } = useProjects();
@@ -124,20 +127,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <div className="relative">
-      <TextSelectionPopup projectId={id} />
-
-      <Tabs defaultValue="chat" className="w-full">
-        <TabsList>
-          <TabsTrigger value="chat">Chat</TabsTrigger>
-          <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="chat">{/* Existing chat content */}</TabsContent>
-
-        <TabsContent value="flashcards" className="mt-4">
-          <FlashcardList projectId={id} />
-        </TabsContent>
-      </Tabs>
+      <TextSelectionPopup projectId={id} setActiveTab={setActiveTab} />
 
       <main className="project-detail-layout bg-[#FAF9F6] dark:bg-[#262625]">
         {/* Header with project info */}
@@ -320,6 +310,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                     project.paper ? project.paper.title : project.title
                   }
                   projectId={id}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
                 />
               </div>
             </ResizeablePanel>

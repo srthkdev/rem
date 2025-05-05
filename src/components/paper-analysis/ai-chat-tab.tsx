@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Copy, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,6 +23,15 @@ export function AIChatTab({ projectId }: AIChatTabProps) {
   const messages = useMemo(() => {
     return allMessages.filter((m) => m.projectId === projectId);
   }, [allMessages, projectId]);
+
+  // On mount, check for draft
+  useEffect(() => {
+    const draft = localStorage.getItem("ai-chat-draft");
+    if (draft) {
+      setInput(draft);
+      localStorage.removeItem("ai-chat-draft");
+    }
+  }, []);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
