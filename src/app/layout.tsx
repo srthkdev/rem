@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Work_Sans, Instrument_Serif } from "next/font/google";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { NekoGlobal } from "@/components/ui/neko-global";
+import { AudioPlayer } from "@/components/ui/audio-player";
 
 import "@/styles/globals.css";
 import "@/styles/layout.css";
@@ -47,6 +49,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       >
         <AuthProvider>
           <Providers>{children}</Providers>
+          <AudioPlayer />
           <Toaster position="top-center" />
         </AuthProvider>
       </body>

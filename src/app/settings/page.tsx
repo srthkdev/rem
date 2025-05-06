@@ -13,6 +13,11 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useSignOut } from "@/hooks/auth-hooks";
 import { LogOut } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Sun, Moon, Laptop } from "lucide-react";
+import { useAppearanceStore } from "@/lib/store/appearance-store";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AudioPlayer } from "@/components/ui/audio-player";
 
 export default function SettingsPage() {
   const { isLoading } = useRequireAuth();
@@ -20,6 +25,10 @@ export default function SettingsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const signOut = useSignOut();
+  const [tab, setTab] = useState<"profile" | "appearance">("profile");
+  const nekoEnabled = useAppearanceStore((s) => s.nekoEnabled);
+  const setNekoEnabled = useAppearanceStore((s) => s.setNekoEnabled);
+  const { theme, setTheme } = useTheme();
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -50,7 +59,7 @@ export default function SettingsPage() {
           className={cn(
             "flex-1 overflow-auto p-6",
             sidebarCollapsed ? "ml-20" : "ml-64",
-            "bg-[#FAF9F6] dark:bg-[#262625] min-h-screen",
+            "bg-[#FAF9F6] dark:bg-[#262625]",
           )}
         >
           <div className="mx-auto w-full max-w-5xl">
@@ -67,7 +76,11 @@ export default function SettingsPage() {
               </Button>
             </div>
             <Separator className="bg-[#E3DACC] dark:bg-[#BFB8AC]/30 h-[2px] w-full mb-8" />
-            <Tabs defaultValue="profile" className="w-full">
+            <Tabs
+              value={tab}
+              onValueChange={(v) => setTab(v as "profile" | "appearance")}
+              className="w-full"
+            >
               <TabsList className="mb-6 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10 border border-[#C96442] dark:border-[#C96442] rounded-lg px-0">
                 <TabsTrigger
                   value="profile"
@@ -132,8 +145,72 @@ export default function SettingsPage() {
                 </div>
               </TabsContent>
               <TabsContent value="appearance">
-                <div className="p-6 bg-white dark:bg-[#262625] rounded-lg shadow border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                  Appearance Settings (coming soon)
+                <div className="flex flex-col gap-6 w-full mt-4 bg-white dark:bg-[#262625] rounded-lg p-8 shadow border border-[#E3DACC] dark:border-[#BFB8AC]/30 max-h-[80vh] overflow-auto pb-30">
+                  <h2 className="text-2xl font-bold mb-2 text-[#C96442] dark:text-[#BFB8AC]">
+                    Appearance
+                  </h2>
+                  <h3 className="text-lg font-semibold mt-2 mb-1 text-[#C96442] dark:text-[#BFB8AC]">
+                    Theme
+                  </h3>
+                  <div className="flex items-center gap-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setTheme("light")}
+                        className={cn(
+                          "flex items-center gap-1 px-3 py-1 rounded border",
+                          theme === "light"
+                            ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 border-[#C96442]"
+                            : "border-transparent hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/5",
+                        )}
+                      >
+                        <Sun className="h-4 w-4" /> Light
+                      </button>
+                      <button
+                        onClick={() => setTheme("dark")}
+                        className={cn(
+                          "flex items-center gap-1 px-3 py-1 rounded border",
+                          theme === "dark"
+                            ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 border-[#C96442]"
+                            : "border-transparent hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/5",
+                        )}
+                      >
+                        <Moon className="h-4 w-4" /> Dark
+                      </button>
+                      <button
+                        onClick={() => setTheme("system")}
+                        className={cn(
+                          "flex items-center gap-1 px-3 py-1 rounded border",
+                          theme === "system"
+                            ? "bg-[#E3DACC]/30 dark:bg-[#BFB8AC]/10 border-[#C96442]"
+                            : "border-transparent hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/5",
+                        )}
+                      >
+                        <Laptop className="h-4 w-4" /> System
+                      </button>
+                    </div>
+                  </div>
+                  <Separator className="my-4 bg-[#E3DACC] dark:bg-[#BFB8AC]/30" />
+                  <h3 className="text-lg font-semibold mb-1 text-[#C96442] dark:text-[#BFB8AC]">
+                    Neko Cursor (Chasing Cat)
+                  </h3>
+                  <div className="flex items-center gap-4 mb-2">
+                    <Checkbox
+                      id="neko-toggle"
+                      checked={nekoEnabled}
+                      onCheckedChange={setNekoEnabled}
+                    />
+                    <label
+                      htmlFor="neko-toggle"
+                      className="text-base select-none cursor-pointer"
+                    >
+                      Enable Neko (cat cursor)
+                    </label>
+                  </div>
+                  <Separator className="my-4 bg-[#E3DACC] dark:bg-[#BFB8AC]/30" />
+                  <h3 className="text-lg font-semibold mb-1 text-[#C96442] dark:text-[#BFB8AC]">
+                    Lo-fi Audio Playback
+                  </h3>
+                  <AudioPlayer />
                 </div>
               </TabsContent>
               <TabsContent value="apis">
