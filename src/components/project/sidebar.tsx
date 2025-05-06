@@ -500,7 +500,7 @@ export function Sidebar({
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => router.push("/profile")}
+                onClick={() => router.push("/settings?profile")}
                 className="text-[#262625] !data-[highlighted]:text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/30 dark:hover:bg-[#BFB8AC]/10 hover:text-[#262625] dark:hover:text-[#FAF9F6]"
               >
                 <UserCircle className="mr-2 h-4 w-4" />
