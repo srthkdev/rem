@@ -6,7 +6,7 @@ import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-van
 import { IntroducingRemAI } from "@/components/shared/introducing-rem-ai";
 import { Header } from "@/components/layouts/header";
 import { Button } from "@/components/ui/button";
-import { X, Sparkles } from "lucide-react";
+import { X, Sparkles, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { searchArxivPapers } from "@/lib/services/arxiv-service";
 import { ArxivPaper } from "@/lib/store/project-store";
 import { PaperSearchGrid } from "@/components/project/paper-search-grid";
+import { HeroVideoDialog } from "@/components/magicui/hero-video-dialog";
 
 const placeholders = [
   "Search for papers on quantum computing...",
@@ -101,22 +102,22 @@ export default function Home() {
       <div className="flex-1 overflow-y-auto">
         <div className="w-full">
           {/* Hero Section */}
-          <section className="px-4 pt-16 pb-8 w-full relative">
+          <section className="min-h-[85vh] px-4 w-full relative flex flex-col items-center justify-start pt-20">
             <IntroducingRemAI />
 
-            <div className="flex flex-col items-center justify-center mt-16 mb-12">
+            <div className="flex flex-col items-center justify-center mt-8">
               <div className="flex items-baseline">
-                <h1 className="font-[family-name:var(--font-instrument-serif)] text-7xl md:text-9xl font-bold text-[#C96442]">
+                <h1 className="font-[family-name:var(--font-instrument-serif)] text-8xl md:text-[150px] font-bold text-[#C96442]">
                   REM
                 </h1>
               </div>
-              <p className="text-xl md:text-2xl font-[family-name:var(--font-work-sans)] font-medium text-black dark:text-white -mt-1">
+              <p className="text-2xl md:text-3xl font-[family-name:var(--font-work-sans)] font-medium text-black dark:text-white -mt-2">
                 Research Made Accessible
               </p>
             </div>
 
-            <div className="max-w-3xl mx-auto mt-10 mb-12">
-              <div className="w-full max-w-xl mx-auto">
+            <div className="w-full max-w-4xl mx-auto mt-12">
+              <div className="w-full mx-auto">
                 <div className="relative">
                   <PlaceholdersAndVanishInput
                     placeholders={placeholders}
@@ -127,7 +128,7 @@ export default function Home() {
                         handleCreateProject();
                       }
                     }}
-                    className="bg-white dark:bg-[#1C1C1C] border-[#E3DACC] dark:border-[#BFB8AC]/30 focus:border-[#C96442] dark:focus:border-[#C96442]"
+                    className="bg-white dark:bg-[#1C1C1C] border-[#E3DACC] dark:border-[#BFB8AC]/30 focus:border-[#C96442] dark:focus:border-[#C96442] h-14 text-lg"
                   />
                 </div>
                 <div className="flex justify-between items-center mt-3 px-6 md:px-4">
@@ -160,68 +161,92 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="mt-2 flex items-center justify-center gap-4">
+              <div className="mt-4 flex items-center justify-center gap-4">
                 <p className="text-sm text-neutral-400">
                   Powered by AI • 1M+ papers • Personalized learning
                 </p>
               </div>
             </div>
-          </section>
 
-          {/* Search Results Grid */}
-          {(debouncedQuery.length >= 3 || searchResults.length > 0) && (
-            <div
-              className={cn(
-                "mt-6 overflow-y-auto scrollbar-thin scrollbar-thumb-[#C96442] scrollbar-track-transparent",
-                debouncedQuery
-                  ? "opacity-100"
-                  : "opacity-0 pointer-events-none",
-                "max-h-[400px]", // Fixed pixel height
-              )}
-            >
-              <div className="pb-4">
-                {isSearching ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[...Array(9)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="relative p-4 border border-[#E3DACC] dark:border-[#BFB8AC]/30 rounded-lg hover:bg-[#E3DACC]/10 dark:hover:bg-[#BFB8AC]/5 transition-colors duration-200"
-                      >
-                        <div className="space-y-3">
-                          <Skeleton className="h-6 w-3/4 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
-                          <Skeleton className="h-16 w-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1">
-                              <Skeleton className="h-4 w-4 rounded-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
-                              <Skeleton className="h-4 w-20 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Skeleton className="h-4 w-4 rounded-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
-                              <Skeleton className="h-4 w-24 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
+            {/* Search Results Grid */}
+            {(debouncedQuery.length >= 3 || searchResults.length > 0) && (
+              <div
+                className={cn(
+                  "w-full max-w-4xl mx-auto mt-8",
+                  debouncedQuery
+                    ? "opacity-100 transition-opacity duration-200"
+                    : "opacity-0 pointer-events-none",
+                )}
+              >
+                <div className="pb-4">
+                  {isSearching ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[...Array(9)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="relative p-4 border border-[#E3DACC] dark:border-[#BFB8AC]/30 rounded-lg hover:bg-[#E3DACC]/10 dark:hover:bg-[#BFB8AC]/5 transition-colors duration-200"
+                        >
+                          <div className="space-y-3">
+                            <Skeleton className="h-6 w-3/4 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
+                            <Skeleton className="h-16 w-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-1">
+                                <Skeleton className="h-4 w-4 rounded-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
+                                <Skeleton className="h-4 w-20 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Skeleton className="h-4 w-4 rounded-full bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
+                                <Skeleton className="h-4 w-24 bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10" />
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <PaperSearchGrid
-                    papers={searchResults.slice(0, 9)}
-                    isLoading={isSearching}
-                    selectedPaper={selectedPaper}
-                    onSelect={handleSelectPaper}
-                    onCreateProject={handleCreateProject}
-                    isCreating={false}
+                      ))}
+                    </div>
+                  ) : (
+                    <PaperSearchGrid
+                      papers={searchResults.slice(0, 9)}
+                      isLoading={isSearching}
+                      selectedPaper={selectedPaper}
+                      onSelect={handleSelectPaper}
+                      onCreateProject={handleCreateProject}
+                      isCreating={false}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Video Section */}
+          <section className="w-full bg-gradient-to-b from-transparent to-white/5 dark:to-black/5 py-24 mt-12">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl md:text-5xl font-bold font-[family-name:var(--font-instrument-serif)] text-[#C96442] mb-4">
+                  See REM in Action
+                </h2>
+                <p className="text-lg md:text-xl text-[#262625]/70 dark:text-[#BFB8AC] max-w-2xl mx-auto">
+                  Watch how REM transforms complex research papers into
+                  interactive learning experiences
+                </p>
+              </div>
+              <div className="max-w-4xl mx-auto">
+                <div className="relative pb-[60.46875%] h-0">
+                  <iframe
+                    src="https://www.loom.com/embed/bef3e28db8584c70af7d9134edfb5fd6?sid=fab7015e-c6a1-41a3-935d-370feb10069f"
+                    frameBorder="0"
+                    allowFullScreen
+                    className="absolute top-0 left-0 w-full h-full rounded-xl shadow-lg"
                   />
-                )}
+                </div>
               </div>
             </div>
-          )}
+          </section>
 
           {/* Rest of the sections */}
           <div className="w-full">
             {/* Explore Section */}
-            <section className="py-16 px-4 bg-gradient-to-b from-white to-stone-50 dark:from-[#1C1C1C] dark:to-stone-900">
+            <section className="min-h-screen py-16 px-4 bg-gradient-to-b from-white to-stone-50 dark:from-[#1C1C1C] dark:to-stone-900 flex items-center">
               <div className="max-w-7xl mx-auto">
                 <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-instrument-serif)] text-[#C96442]">
                   Explore Research Like Never Before
@@ -330,7 +355,7 @@ export default function Home() {
             </section>
 
             {/* About Section */}
-            <section className="py-16 px-4 bg-[#C96442]/5 dark:bg-[#C96442]/10">
+            <section className="min-h-screen py-16 px-4 bg-[#C96442]/5 dark:bg-[#C96442]/10 flex items-center">
               <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                   <div>
@@ -366,22 +391,12 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  <div className="relative">
-                    <div className="aspect-video rounded-xl overflow-hidden shadow-xl border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#C96442] to-[#C96442]/50 opacity-20"></div>
-                      <img
-                        src="/demo-placeholder.png"
-                        alt="REM Demo"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
             </section>
 
             {/* Features Section */}
-            <section className="py-16 px-4 bg-white dark:bg-[#1C1C1C]">
+            <section className="min-h-screen py-16 px-4 bg-white dark:bg-[#1C1C1C] flex items-center">
               <div className="max-w-7xl mx-auto">
                 <h2 className="text-4xl font-bold text-center mb-12 font-[family-name:var(--font-instrument-serif)] text-[#C96442]">
                   Powerful Features for Research
