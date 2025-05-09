@@ -15,6 +15,7 @@ import { searchArxivPapers } from "@/lib/services/arxiv-service";
 import { ArxivPaper } from "@/lib/store/project-store";
 import { PaperSearchGrid } from "@/components/project/paper-search-grid";
 import { HeroVideoDialog } from "@/components/magicui/hero-video-dialog";
+import { AvatarCircles } from "@/components/magicui/avatar-circles";
 
 const placeholders = [
   "Search for papers on quantum computing...",
@@ -23,6 +24,33 @@ const placeholders = [
   "Search for neural networks...",
   "Explore research in computer vision...",
   "Find papers on genomics and DNA sequencing...",
+];
+
+const avatars = [
+  {
+    imageUrl: "https://avatars.githubusercontent.com/u/16860528",
+    profileUrl: "https://github.com/dillionverma",
+  },
+  {
+    imageUrl: "https://avatars.githubusercontent.com/u/20110627",
+    profileUrl: "https://github.com/tomonarifeehan",
+  },
+  {
+    imageUrl: "https://avatars.githubusercontent.com/u/106103625",
+    profileUrl: "https://github.com/BankkRoll",
+  },
+  {
+    imageUrl: "https://avatars.githubusercontent.com/u/59228569",
+    profileUrl: "https://github.com/safethecode",
+  },
+  {
+    imageUrl: "https://avatars.githubusercontent.com/u/59442788",
+    profileUrl: "https://github.com/sanjay-mali",
+  },
+  {
+    imageUrl: "https://avatars.githubusercontent.com/u/89768406",
+    profileUrl: "https://github.com/itsarghyadas",
+  },
 ];
 
 export default function Home() {
@@ -219,9 +247,9 @@ export default function Home() {
           </section>
 
           {/* Video Section */}
-          <section className="w-full bg-gradient-to-b from-transparent to-white/5 dark:to-black/5 py-24 mt-12">
+          <section className="w-full py-12 mt-8">
             <div className="max-w-7xl mx-auto px-4">
-              <div className="text-center mb-12">
+              <div className="text-center mb-8">
                 <h2 className="text-4xl md:text-5xl font-bold font-[family-name:var(--font-instrument-serif)] text-[#C96442] mb-4">
                   See REM in Action
                 </h2>
@@ -240,297 +268,121 @@ export default function Home() {
                   />
                 </div>
               </div>
+
+              {/* Trust and Powered By Section */}
+              <div className="mt-16 flex flex-row justify-between items-start max-w-6xl mx-auto pb-20 px-2">
+                {/* Trusted By Section */}
+                <div className="flex flex-col items-start gap-4 w-1/3 ml-auto mr-20">
+                  <h3 className="text-2xl font-bold text-[#262625] dark:text-[#FAF9F6]">
+                    Trusted by Engineers & Researchers
+                  </h3>
+                  <AvatarCircles
+                    numPeople={99}
+                    avatarUrls={avatars}
+                    className="[&_img]:h-9 [&_img]:w-9 -space-x-3 [&_a:last-child]:h-9 [&_a:last-child]:w-9 [&_a:last-child]:text-xs"
+                  />
+                </div>
+
+                {/* Powered By Section */}
+                <div className="w-1/2 flex flex-col items-center gap-6">
+                  <h3 className="text-2xl font-bold text-[#262625] dark:text-[#FAF9F6] self-center mb-2">
+                    Powered By
+                  </h3>
+                  <div className="grid grid-cols-3 gap-x-2 gap-y-3 place-items-center w-[90%]">
+                    <img
+                      src="/nextjs.png"
+                      alt="Next.js"
+                      className="h-10 dark:invert"
+                    />
+                    <img src="/mem0.png" alt="Memo" className="h-24" />
+                    <img
+                      src="/firecrawl.png"
+                      alt="Firecrawl"
+                      className="h-24"
+                    />
+                    <img
+                      src="/arxiv.png"
+                      alt="arXiv"
+                      className="h-20 col-start-1 col-end-2"
+                    />
+                    <img
+                      src="/agno-logo.png"
+                      alt="Agno"
+                      className="h-10 col-start-2 col-end-3"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
-          {/* Rest of the sections */}
-          <div className="w-full">
-            {/* Explore Section */}
-            <section className="min-h-screen py-16 px-4 bg-gradient-to-b from-white to-stone-50 dark:from-[#1C1C1C] dark:to-stone-900 flex items-center">
-              <div className="max-w-7xl mx-auto">
-                <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-instrument-serif)] text-[#C96442]">
-                  Explore Research Like Never Before
-                </h2>
-                <p className="text-lg md:text-xl text-center text-[#262625]/70 dark:text-[#BFB8AC] mb-12 max-w-3xl mx-auto">
-                  Transform complex research papers into interactive learning
-                  experiences with our AI-powered tools.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  <div className="bg-white dark:bg-[#262625] p-6 rounded-xl shadow-sm border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                    <div className="h-12 w-12 bg-[#C96442]/10 rounded-lg flex items-center justify-center mb-4">
-                      <svg
-                        className="h-6 w-6 text-[#C96442]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">
-                      Smart Summaries
-                    </h3>
-                    <p className="text-[#262625]/70 dark:text-[#BFB8AC]">
-                      Get instant, comprehensive summaries of research papers
-                      powered by multimodal AI.
-                    </p>
-                  </div>
-                  <div className="bg-white dark:bg-[#262625] p-6 rounded-xl shadow-sm border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                    <div className="h-12 w-12 bg-[#C96442]/10 rounded-lg flex items-center justify-center mb-4">
-                      <svg
-                        className="h-6 w-6 text-[#C96442]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Flashcards</h3>
-                    <p className="text-[#262625]/70 dark:text-[#BFB8AC]">
-                      Convert key concepts into interactive flashcards for
-                      effective learning and retention.
-                    </p>
-                  </div>
-                  <div className="bg-white dark:bg-[#262625] p-6 rounded-xl shadow-sm border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                    <div className="h-12 w-12 bg-[#C96442]/10 rounded-lg flex items-center justify-center mb-4">
-                      <svg
-                        className="h-6 w-6 text-[#C96442]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">
-                      Audio Learning
-                    </h3>
-                    <p className="text-[#262625]/70 dark:text-[#BFB8AC]">
-                      Listen to AI-generated podcasts summarizing research
-                      papers on the go.
-                    </p>
-                  </div>
-                  <div className="bg-white dark:bg-[#262625] p-6 rounded-xl shadow-sm border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                    <div className="h-12 w-12 bg-[#C96442]/10 rounded-lg flex items-center justify-center mb-4">
-                      <svg
-                        className="h-6 w-6 text-[#C96442]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">
-                      Interactive Q&A
-                    </h3>
-                    <p className="text-[#262625]/70 dark:text-[#BFB8AC]">
-                      Engage in dynamic discussions with AI about any aspect of
-                      the research.
-                    </p>
+          {/* Footer */}
+          <footer className="bg-stone-50 dark:bg-stone-900 border-t border-[#E3DACC] dark:border-[#BFB8AC]/30">
+            <div className="max-w-7xl mx-auto px-4 py-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                  <h3 className="font-bold text-lg mb-4">About REM</h3>
+                  <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC] mb-4">
+                    Making research accessible through AI-powered learning tools
+                    and comprehensive paper analysis.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-4">Features</h3>
+                  <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
+                    <li>Smart Summaries</li>
+                    <li>Interactive Flashcards</li>
+                    <li>AI-Generated Podcasts</li>
+                    <li>Dynamic Q&A</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-4">Resources</h3>
+                  <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
+                    <li>Documentation</li>
+                    <li>API Reference</li>
+                    <li>Research Papers</li>
+                    <li>Community</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-4">Legal</h3>
+                  <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
+                    <li>Terms of Service</li>
+                    <li>Privacy Policy</li>
+                    <li>Cookie Policy</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="mt-8 pt-8 border-t border-[#E3DACC] dark:border-[#BFB8AC]/30">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                  <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
+                    © 2025 REM. All rights reserved.
+                  </p>
+                  <div className="flex items-center gap-6">
+                    <a
+                      href="https://x.com/sarthxk20"
+                      className="text-[#C96442] hover:text-[#C96442]/80"
+                    >
+                      Twitter
+                    </a>
+                    <a
+                      href="https://github.com/srthkdev"
+                      className="text-[#C96442] hover:text-[#C96442]/80"
+                    >
+                      GitHub
+                    </a>
+                    <a
+                      href="https://www.linkedin.com/in/sarthak-jain-32b114228/"
+                      className="text-[#C96442] hover:text-[#C96442]/80"
+                    >
+                      Linkedin
+                    </a>
                   </div>
                 </div>
               </div>
-            </section>
-
-            {/* About Section */}
-            <section className="min-h-screen py-16 px-4 bg-[#C96442]/5 dark:bg-[#C96442]/10 flex items-center">
-              <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                  <div>
-                    <h2 className="text-4xl font-bold mb-6 font-[family-name:var(--font-instrument-serif)] text-[#C96442]">
-                      About REM
-                    </h2>
-                    <p className="text-lg text-[#262625]/70 dark:text-[#BFB8AC] mb-6">
-                      REM is revolutionizing how researchers, students, and
-                      professionals interact with academic papers. By leveraging
-                      the power of arXiv&apos;s extensive database and
-                      cutting-edge AI technology, we transform complex research
-                      into accessible knowledge.
-                    </p>
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <div className="h-6 w-6 mt-1 text-[#C96442]">✓</div>
-                        <p className="text-[#262625]/70 dark:text-[#BFB8AC]">
-                          Access to over 1 million research papers from arXiv
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="h-6 w-6 mt-1 text-[#C96442]">✓</div>
-                        <p className="text-[#262625]/70 dark:text-[#BFB8AC]">
-                          Multimodal AI understanding of text, equations, and
-                          figures
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="h-6 w-6 mt-1 text-[#C96442]">✓</div>
-                        <p className="text-[#262625]/70 dark:text-[#BFB8AC]">
-                          Personalized learning paths and recommendations
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Features Section */}
-            <section className="min-h-screen py-16 px-4 bg-white dark:bg-[#1C1C1C] flex items-center">
-              <div className="max-w-7xl mx-auto">
-                <h2 className="text-4xl font-bold text-center mb-12 font-[family-name:var(--font-instrument-serif)] text-[#C96442]">
-                  Powerful Features for Research
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  <div className="p-6 rounded-xl border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                    <h3 className="text-xl font-semibold mb-4">
-                      Smart Summaries
-                    </h3>
-                    <ul className="space-y-3 text-[#262625]/70 dark:text-[#BFB8AC]">
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        Key findings extraction
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        Visual data interpretation
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        Mathematical equation explanations
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="p-6 rounded-xl border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                    <h3 className="text-xl font-semibold mb-4">
-                      Interactive Learning
-                    </h3>
-                    <ul className="space-y-3 text-[#262625]/70 dark:text-[#BFB8AC]">
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        AI-powered Q&A
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        Dynamic flashcards
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        Progress tracking
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="p-6 rounded-xl border border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                    <h3 className="text-xl font-semibold mb-4">
-                      Audio Learning
-                    </h3>
-                    <ul className="space-y-3 text-[#262625]/70 dark:text-[#BFB8AC]">
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        AI-generated podcasts
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        Voice-based interactions
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-[#C96442]">•</span>
-                        Mobile-friendly learning
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="bg-stone-50 dark:bg-stone-900 border-t border-[#E3DACC] dark:border-[#BFB8AC]/30">
-              <div className="max-w-7xl mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  <div>
-                    <h3 className="font-bold text-lg mb-4">About REM</h3>
-                    <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC] mb-4">
-                      Making research accessible through AI-powered learning
-                      tools and comprehensive paper analysis.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-4">Features</h3>
-                    <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                      <li>Smart Summaries</li>
-                      <li>Interactive Flashcards</li>
-                      <li>AI-Generated Podcasts</li>
-                      <li>Dynamic Q&A</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-4">Resources</h3>
-                    <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                      <li>Documentation</li>
-                      <li>API Reference</li>
-                      <li>Research Papers</li>
-                      <li>Community</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-4">Legal</h3>
-                    <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                      <li>Terms of Service</li>
-                      <li>Privacy Policy</li>
-                      <li>Cookie Policy</li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="mt-8 pt-8 border-t border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                  <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                      © 2025 REM. All rights reserved.
-                    </p>
-                    <div className="flex items-center gap-6">
-                      <a
-                        href="https://x.com/sarthxk20"
-                        className="text-[#C96442] hover:text-[#C96442]/80"
-                      >
-                        Twitter
-                      </a>
-                      <a
-                        href="https://github.com/srthkdev"
-                        className="text-[#C96442] hover:text-[#C96442]/80"
-                      >
-                        GitHub
-                      </a>
-                      <a
-                        href="https://www.linkedin.com/in/sarthak-jain-32b114228/"
-                        className="text-[#C96442] hover:text-[#C96442]/80"
-                      >
-                        Linkedin
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </footer>
-          </div>
+            </div>
+          </footer>
         </div>
       </div>
     </div>
