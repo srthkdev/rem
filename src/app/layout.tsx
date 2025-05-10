@@ -24,7 +24,7 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: "REM",
-  description: "REM - Real Estate Management",
+  description: "REM - Research made accessible",
 };
 
 export const viewport: Viewport = {
