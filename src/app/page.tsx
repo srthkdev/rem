@@ -6,7 +6,25 @@ import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-van
 import { IntroducingRemAI } from "@/components/shared/introducing-rem-ai";
 import { Header } from "@/components/layouts/header";
 import { Button } from "@/components/ui/button";
-import { X, Sparkles, Plus } from "lucide-react";
+import {
+  X,
+  Sparkles,
+  Plus,
+  Twitter,
+  Github,
+  Linkedin,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Heart,
+  Calendar,
+  Globe,
+  Shield,
+  Book,
+  FileText,
+  ChevronUp,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +34,7 @@ import { ArxivPaper } from "@/lib/store/project-store";
 import { PaperSearchGrid } from "@/components/project/paper-search-grid";
 import { HeroVideoDialog } from "@/components/magicui/hero-video-dialog";
 import { AvatarCircles } from "@/components/magicui/avatar-circles";
+import { FeaturesSectionDemo } from "@/components/magicui/features-section-demo";
 
 const placeholders = [
   "Search for papers on quantum computing...",
@@ -316,67 +335,213 @@ export default function Home() {
             </div>
           </section>
 
+          {/* Features Section */}
+          <FeaturesSectionDemo />
+
           {/* Footer */}
-          <footer className="bg-stone-50 dark:bg-stone-900 border-t border-[#E3DACC] dark:border-[#BFB8AC]/30">
-            <div className="max-w-7xl mx-auto px-4 py-12">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <footer
+            className={cn(
+              "mt-20 rounded-t-3xl bg-[#262625] dark:bg-[#FAF9F6] text-[#FAF9F6] dark:text-[#262625] shadow-lg",
+            )}
+          >
+            <div className="max-w-7xl mx-auto px-6 py-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 gap-y-12">
+                {/* Company Column */}
                 <div>
-                  <h3 className="font-bold text-lg mb-4">About REM</h3>
-                  <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC] mb-4">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <User className="h-5 w-5 text-[#C96442]" />
+                    About REM
+                  </h3>
+                  <p className="text-sm text-[#FAF9F6]/70 dark:text-[#262625]/70 mb-6">
                     Making research accessible through AI-powered learning tools
                     and comprehensive paper analysis.
                   </p>
+                  <div className="flex gap-1 mb-2">
+                    <img
+                      src="/arxiv.png"
+                      alt="ISO 27001"
+                      className="h-15 w-30"
+                    />
+                  </div>
                 </div>
+
+                {/* Platform Column */}
                 <div>
-                  <h3 className="font-bold text-lg mb-4">Features</h3>
-                  <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                    <li>Smart Summaries</li>
-                    <li>Interactive Flashcards</li>
-                    <li>AI-Generated Podcasts</li>
-                    <li>Dynamic Q&A</li>
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-[#C96442]" />
+                    Platform
+                  </h3>
+                  <ul className="space-y-3 text-sm text-[#FAF9F6]/70 dark:text-[#262625]/70">
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <Book className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Smart Summaries
+                      </a>
+                    </li>
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <FileText className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Interactive Flashcards
+                      </a>
+                    </li>
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <Heart className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        AI-Generated Podcasts
+                      </a>
+                    </li>
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <Calendar className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Dynamic Q&A
+                      </a>
+                    </li>
                   </ul>
                 </div>
+
+                {/* Resources Column */}
                 <div>
-                  <h3 className="font-bold text-lg mb-4">Resources</h3>
-                  <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                    <li>Documentation</li>
-                    <li>API Reference</li>
-                    <li>Research Papers</li>
-                    <li>Community</li>
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <Book className="h-5 w-5 text-[#C96442]" />
+                    Resources
+                  </h3>
+                  <ul className="space-y-3 text-sm text-[#FAF9F6]/70 dark:text-[#262625]/70">
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <FileText className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Documentation
+                      </a>
+                    </li>
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <Book className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        API Reference
+                      </a>
+                    </li>
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <FileText className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Research Papers
+                      </a>
+                    </li>
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <User className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Community
+                      </a>
+                    </li>
                   </ul>
                 </div>
+
+                {/* Company/Legal Column */}
                 <div>
-                  <h3 className="font-bold text-lg mb-4">Legal</h3>
-                  <ul className="space-y-2 text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                    <li>Terms of Service</li>
-                    <li>Privacy Policy</li>
-                    <li>Cookie Policy</li>
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-[#C96442]" />
+                    Legal
+                  </h3>
+                  <ul className="space-y-3 text-sm text-[#FAF9F6]/70 dark:text-[#262625]/70">
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <FileText className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Terms of Service
+                      </a>
+                    </li>
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <Shield className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Privacy Policy
+                      </a>
+                    </li>
+                    <li className="flex items-center gap-2 transition-colors hover:text-[#C96442]">
+                      <Shield className="h-4 w-4" />
+                      <a
+                        href="#"
+                        className="hover:underline focus:underline focus:outline-none"
+                      >
+                        Cookie Policy
+                      </a>
+                    </li>
                   </ul>
                 </div>
               </div>
-              <div className="mt-8 pt-8 border-t border-[#E3DACC] dark:border-[#BFB8AC]/30">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                  <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC]">
-                    © 2025 REM. All rights reserved.
-                  </p>
-                  <div className="flex items-center gap-6">
+
+              {/* Bottom Section with Copyright and Social Media */}
+              <div className="mt-10 pt-8 border-t border-[#FAF9F6]/10 dark:border-[#262625]/10">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-[#FAF9F6]/70 dark:text-[#262625]/70">
+                      © 2025 REM. All rights reserved.
+                    </p>
+                    <address className="not-italic text-xs text-[#FAF9F6]/50 dark:text-[#262625]/50 flex items-center gap-2">
+                      <MapPin className="h-3 w-3" />
+                      <span>123 Research Ave, San Francisco, CA 94107</span>
+                    </address>
+                  </div>
+                  <div className="flex items-center gap-4">
                     <a
-                      href="https://x.com/sarthxk20"
-                      className="text-[#C96442] hover:text-[#C96442]/80"
+                      href="#"
+                      className="p-2 rounded-full bg-[#FAF9F6]/5 dark:bg-[#262625]/5 hover:bg-[#C96442]/20 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C96442] focus:ring-offset-2 focus:ring-offset-[#262625] dark:focus:ring-offset-[#FAF9F6]"
+                      aria-label="Twitter"
                     >
-                      Twitter
+                      <Twitter className="h-5 w-5 text-[#C96442]" />
                     </a>
                     <a
-                      href="https://github.com/srthkdev"
-                      className="text-[#C96442] hover:text-[#C96442]/80"
+                      href="#"
+                      className="p-2 rounded-full bg-[#FAF9F6]/5 dark:bg-[#262625]/5 hover:bg-[#C96442]/20 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C96442] focus:ring-offset-2 focus:ring-offset-[#262625] dark:focus:ring-offset-[#FAF9F6]"
+                      aria-label="GitHub"
                     >
-                      GitHub
+                      <Github className="h-5 w-5 text-[#C96442]" />
                     </a>
                     <a
-                      href="https://www.linkedin.com/in/sarthak-jain-32b114228/"
-                      className="text-[#C96442] hover:text-[#C96442]/80"
+                      href="#"
+                      className="p-2 rounded-full bg-[#FAF9F6]/5 dark:bg-[#262625]/5 hover:bg-[#C96442]/20 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C96442] focus:ring-offset-2 focus:ring-offset-[#262625] dark:focus:ring-offset-[#FAF9F6]"
+                      aria-label="LinkedIn"
                     >
-                      Linkedin
+                      <Linkedin className="h-5 w-5 text-[#C96442]" />
+                    </a>
+                    <a
+                      href="#"
+                      className="p-2 rounded-full bg-[#FAF9F6]/5 dark:bg-[#262625]/5 hover:bg-[#C96442]/20 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C96442] focus:ring-offset-2 focus:ring-offset-[#262625] dark:focus:ring-offset-[#FAF9F6]"
+                      aria-label="Email"
+                    >
+                      <Mail className="h-5 w-5 text-[#C96442]" />
+                    </a>
+                    <a
+                      href="#"
+                      className="p-2 rounded-full bg-[#FAF9F6]/5 dark:bg-[#262625]/5 hover:bg-[#C96442]/20 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C96442] focus:ring-offset-2 focus:ring-offset-[#262625] dark:focus:ring-offset-[#FAF9F6]"
+                      aria-label="Phone"
+                    >
+                      <Phone className="h-5 w-5 text-[#C96442]" />
                     </a>
                   </div>
                 </div>
