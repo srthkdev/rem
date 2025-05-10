@@ -23,21 +23,21 @@ export function FeaturesSectionDemo() {
         "Understand papers at your level with our three modes: ELI5 for beginners, College Student for intermediate, and Expert for advanced readers.",
       skeleton: <SkeletonOne />,
       className:
-        "col-span-1 lg:col-span-4 border-b lg:border-r dark:border-neutral-800",
+        "col-span-1 lg:col-span-4 border-b lg:border-r dark:border-[#858585]",
     },
     {
       title: "Visual Learning",
       description:
         "Transform complex research into visual learning materials with our AI-powered visualization tools.",
       skeleton: <SkeletonTwo />,
-      className: "border-b col-span-1 lg:col-span-2 dark:border-neutral-800",
+      className: "border-b col-span-1 lg:col-span-2 dark:border-[#858585]",
     },
     {
       title: "Multimodal Learning",
       description:
         "Experience research through multiple formats - listen, watch, read, and interact with papers in ways that suit your learning style.",
       skeleton: <SkeletonThree />,
-      className: "col-span-1 lg:col-span-3 lg:border-r dark:border-neutral-800",
+      className: "col-span-1 lg:col-span-3 lg:border-r dark:border-[#858585]",
     },
     {
       title: "Global Research Network",
@@ -61,7 +61,7 @@ export function FeaturesSectionDemo() {
       </div>
 
       <div className="relative">
-        <div className="grid grid-cols-1 lg:grid-cols-6 mt-8 xl:border rounded-md dark:border-neutral-800">
+        <div className="grid grid-cols-1 lg:grid-cols-6 mt-8 xl:border rounded-md dark:border-[#858585]">
           {features.map((feature) => (
             <FeatureCard key={feature.title} className={feature.className}>
               <FeatureTitle>{feature.title}</FeatureTitle>
@@ -124,8 +124,8 @@ export const SkeletonOne = () => {
         />
       </div>
 
-      <div className="absolute bottom-0 z-40 inset-x-0 h-60 bg-gradient-to-t from-white dark:from-black via-white dark:via-black to-transparent w-full pointer-events-none" />
-      <div className="absolute top-0 z-40 inset-x-0 h-60 bg-gradient-to-b from-white dark:from-black via-transparent to-transparent w-full pointer-events-none" />
+      <div className="absolute bottom-0 z-40 inset-x-0 h-60 bg-gradient-to-t from-white dark:from-[#262626] via-white dark:via-[#262626] to-transparent w-full pointer-events-none" />
+      <div className="absolute top-0 z-40 inset-x-0 h-60 bg-gradient-to-b from-white dark:from-[#262626] via-transparent to-transparent w-full pointer-events-none" />
     </div>
   );
 };
@@ -255,8 +255,8 @@ export const SkeletonTwo = () => {
         ))}
       </div>
 
-      <div className="absolute left-0 z-[100] inset-y-0 w-20 bg-gradient-to-r from-white dark:from-black to-transparent h-full pointer-events-none" />
-      <div className="absolute right-0 z-[100] inset-y-0 w-20 bg-gradient-to-l from-white dark:from-black to-transparent h-full pointer-events-none" />
+      <div className="absolute left-0 z-[100] inset-y-0 w-20 bg-gradient-to-r from-white dark:from-[#262626] to-transparent h-full pointer-events-none" />
+      <div className="absolute right-0 z-[100] inset-y-0 w-20 bg-gradient-to-l from-white dark:from-[#262626] to-transparent h-full pointer-events-none" />
     </div>
   );
 };
