@@ -2,49 +2,32 @@
 
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSignOut } from "@/hooks/auth-hooks";
 
 export function Header() {
   const { user, isAuthenticated, isLoading } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const signOut = useSignOut();
 
-  // Redirect to appropriate pages based on auth state
+  // Redirect to sign-in if not authenticated and on protected routes
   useEffect(() => {
     if (!isLoading) {
       const currentPath = window.location.pathname;
-
-      // Handle authenticated users
-      if (isAuthenticated) {
-        // If on landing page, redirect to project/new
-        if (currentPath === "/") {
-          console.log(
-            "Header: Authenticated user on landing page, redirecting to project/new",
-          );
-          router.push("/project/new");
-        }
-      }
-      // Handle unauthenticated users
-      else {
+      if (!isAuthenticated) {
         const protectedPaths = [
           "/project",
           "/dashboard",
           "/settings",
           "/profile",
         ];
-
-        // Check if the current path is a protected route
         const isProtectedRoute = protectedPaths.some(
           (path) => currentPath === path || currentPath.startsWith(`${path}/`),
         );
-
         if (isProtectedRoute) {
-          console.log(
-            "Header: Not authenticated but on protected route, redirecting to sign-in",
-          );
           router.push("/auth/sign-in");
         }
       }
@@ -93,6 +76,22 @@ export function Header() {
       .slice(0, 2);
   };
 
+  // Smooth scroll to section if on homepage, else navigate to homepage and scroll after navigation
+  const handleNav = (section: string, e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (pathname === "/") {
+      const el = document.getElementById(section);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("scrollToSection", section);
+      }
+      router.push("/");
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6 mx-auto">
@@ -107,24 +106,27 @@ export function Header() {
 
         {/* Navigation Links - Center Aligned */}
         <nav className="hidden md:flex items-center justify-center flex-1 gap-6">
-          <Link
-            href="/"
-            className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]"
+          <a
+            href="#hero"
+            onClick={(e) => handleNav("hero", e)}
+            className="text-sm font-medium bg-transparent border-none relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442] cursor-pointer"
           >
             Home
-          </Link>
-          <Link
-            href="/explore"
-            className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]"
+          </a>
+          <a
+            href="#demo"
+            onClick={(e) => handleNav("demo", e)}
+            className="text-sm font-medium bg-transparent border-none relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442] cursor-pointer"
           >
-            Explore
-          </Link>
-          <Link
-            href="/about"
-            className="text-sm font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442]"
+            Demo
+          </a>
+          <a
+            href="#features"
+            onClick={(e) => handleNav("features", e)}
+            className="text-sm font-medium bg-transparent border-none relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#C96442] after:transition-all after:duration-300 hover:after:w-full hover:text-[#C96442] cursor-pointer"
           >
-            About
-          </Link>
+            Features
+          </a>
         </nav>
 
         {/* Auth Buttons - Right Aligned */}

@@ -140,7 +140,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                   variant="ghost"
                   size="icon"
                   onClick={handleBack}
-                  className="flex-shrink-0 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC]/20 dark:hover:bg-[#BFB8AC]/10"
+                  className="flex-shrink-0 text-[#262625] dark:text-[#FAF9F6] hover:bg-[#E3DACC] dark:hover:bg-[#BFB8AC]/10 hover:text-[#C96442] hover:border-[#C96442]"
                 >
                   <ArrowLeft className="h-5 w-5" />
                   <span className="sr-only">Back</span>
@@ -234,7 +234,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                           variant="outline"
                           size="sm"
                           onClick={() => setUseGoogleViewer(!useGoogleViewer)}
-                          className="h-8 px-2 bg-white/90 backdrop-blur-sm dark:bg-[#262625]/90 border-[#E3DACC] dark:border-[#BFB8AC]/30 shadow-sm"
+                          className="h-8 px-2 bg-white/90 backdrop-blur-sm dark:bg-[#262625] dark:hover:bg-[#262625] border-[#E3DACC] dark:border-[#BFB8AC]/30 shadow-sm hover:bg-[#E3DACC] hover:!text-[#C96442] hover:!border-[#C96442] border-2"
                         >
                           {useGoogleViewer
                             ? "Use Direct View"
@@ -262,7 +262,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                           variant="outline"
                           size="sm"
                           onClick={() => setUsePDFFallback(true)}
-                          className="h-8 px-2 bg-white/90 backdrop-blur-sm dark:bg-[#262625]/90 border-[#E3DACC] dark:border-[#BFB8AC]/30 shadow-sm"
+                          className="h-8 px-2 bg-white/90 backdrop-blur-sm dark:bg-[#262625] dark:hover:bg-[#262625] border-[#E3DACC] dark:border-[#BFB8AC]/30 shadow-sm hover:bg-[#E3DACC] hover:!text-[#C96442] hover:!border-[#C96442] border-2"
                         >
                           <ExternalLink className="h-4 w-4 mr-1" />
                           Use Direct View

@@ -103,7 +103,7 @@ export function AIPaperAnalysis({
       )}
     >
       <div className="flex flex-col">
-        <div className="flex px-2 gap-1 relative border-b border-[#C96442]/30">
+        <div className="flex px-2 gap-1 relative border-b border-[#C96442]/30 overflow-x-auto whitespace-nowrap scrollbar-hide">
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-[#C96442]/30" />
           {tabs.map((tab) => {
             const Icon = tab.icon;

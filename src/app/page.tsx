@@ -79,6 +79,22 @@ export default function Home() {
   const [selectedPaper, setSelectedPaper] = useState<ArxivPaper | null>(null);
   const [searchResults, setSearchResults] = useState<ArxivPaper[]>([]);
 
+  // Scroll to section if coming from another page
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const section = sessionStorage.getItem("scrollToSection");
+      if (section) {
+        const el = document.getElementById(section);
+        if (el) {
+          setTimeout(() => {
+            el.scrollIntoView({ behavior: "smooth" });
+          }, 100); // wait for DOM to paint
+        }
+        sessionStorage.removeItem("scrollToSection");
+      }
+    }
+  }, []);
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -149,7 +165,10 @@ export default function Home() {
       <div className="flex-1 overflow-y-auto">
         <div className="w-full">
           {/* Hero Section */}
-          <section className="min-h-[85vh] px-4 w-full relative flex flex-col items-center justify-start pt-20">
+          <section
+            id="hero"
+            className="min-h-[85vh] px-4 w-full relative flex flex-col items-center justify-start pt-20"
+          >
             <IntroducingRemAI />
 
             <div className="flex flex-col items-center justify-center mt-8">
@@ -266,7 +285,7 @@ export default function Home() {
           </section>
 
           {/* Video Section */}
-          <section className="w-full py-12 mt-8">
+          <section id="demo" className="w-full py-12 mt-8">
             <div className="max-w-7xl mx-auto px-4">
               <div className="text-center mb-8">
                 <h2 className="text-4xl md:text-5xl font-bold font-[family-name:var(--font-instrument-serif)] text-[#C96442] mb-4">
@@ -336,7 +355,9 @@ export default function Home() {
           </section>
 
           {/* Features Section */}
-          <FeaturesSectionDemo />
+          <section id="features">
+            <FeaturesSectionDemo />
+          </section>
 
           {/* Footer */}
           <footer

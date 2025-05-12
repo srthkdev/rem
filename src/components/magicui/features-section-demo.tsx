@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import createGlobe from "cobe";
-import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Brain,
@@ -208,6 +207,16 @@ export const SkeletonTwo = () => {
       zIndex: 100,
     },
   };
+
+  const [rotations, setRotations] = useState<number[]>([]);
+  useEffect(() => {
+    setRotations(
+      Array(images.length * 2)
+        .fill(0)
+        .map(() => Math.random() * 20 - 10),
+    );
+  }, []);
+
   return (
     <div className="relative flex flex-col items-start p-8 gap-10 h-full overflow-hidden">
       <div className="flex flex-row -ml-20">
@@ -216,7 +225,7 @@ export const SkeletonTwo = () => {
             variants={imageVariants}
             key={"images-first" + idx}
             style={{
-              rotate: Math.random() * 20 - 10,
+              rotate: rotations[idx] || 0,
             }}
             whileHover="whileHover"
             whileTap="whileTap"
@@ -237,7 +246,7 @@ export const SkeletonTwo = () => {
           <motion.div
             key={"images-second" + idx}
             style={{
-              rotate: Math.random() * 20 - 10,
+              rotate: rotations[images.length + idx] || 0,
             }}
             variants={imageVariants}
             whileHover="whileHover"

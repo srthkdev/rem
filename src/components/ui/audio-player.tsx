@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { useAudioStore } from "@/lib/store/audio-store";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 
-export function AudioPlayer() {
+export function AudioPlayer({ background = false }: { background?: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const {
     isPlaying,
@@ -68,6 +68,20 @@ export function AudioPlayer() {
   const onVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVolume(Number(e.target.value));
   };
+
+  if (background) {
+    // Only render the <audio> element, not the player UI
+    return (
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        loop
+        onTimeUpdate={onTimeUpdate}
+        onLoadedMetadata={onLoadedMetadata}
+        style={{ display: "none" }}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2 w-full max-w-xs bg-white/80 dark:bg-[#222]/80 rounded-lg p-4 shadow border">

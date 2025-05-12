@@ -535,6 +535,7 @@ export function PDFViewer({
                     variant="outline"
                     size="sm"
                     onClick={onFallbackRequest}
+                    className="hover:!text-[#C96442] hover:!border-[#C96442] border-2"
                   >
                     Use direct view
                   </Button>

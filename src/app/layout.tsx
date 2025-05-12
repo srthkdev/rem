@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       >
         <AuthProvider>
           <Providers>{children}</Providers>
-          <AudioPlayer />
+          <AudioPlayer background />
           <Toaster position="top-center" />
         </AuthProvider>
       </body>
