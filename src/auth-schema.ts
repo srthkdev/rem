@@ -58,6 +58,25 @@ export const projects = pgTable("projects", {
   title: text("title").notNull(),
   description: text("description"),
   paper: jsonb("paper"),
+  paperText: text("paper_text"), // Full extracted text of the paper
+  status: text("status").default('pending'), // e.g., 'pending', 'processing', 'complete', 'failed'
+  
+  // Summaries
+  summaryEli5: text("summary_eli5"),
+  summaryCollege: text("summary_college"),
+  summaryExpert: text("summary_expert"),
+  
+  // Extracted Insights
+  extractedCodeSnippets: jsonb("extracted_code_snippets"), // Store as { description: string, code: string }[]
+  extractedReferences: jsonb("extracted_references"), // Store as { title: string, url: string }[]
+  
+  // Enriched Context
+  keyTerms: jsonb("key_terms"), // Store as { term: string, definition: string, source: string }[]
+  
+  // Visuals
+  diagramSyntax: text("diagram_syntax"), // Mermaid.js syntax
+  vectorStorePath: text("vector_store_path"), // Path to the saved FAISS vector store
+
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });

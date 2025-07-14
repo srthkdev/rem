@@ -16,24 +16,25 @@ import { AIChatTab } from "./ai-chat-tab";
 import { cn } from "@/lib/utils";
 import { SimplifiedPaper } from "./simplified-paper";
 
+
+import { projects } from "@/database/schema";
+import { DiagramView } from "./diagram-view";
+import { InsightsView } from "./insights-view";
+
 interface AIPaperAnalysisProps {
-  userQuery: string;
-  paperTitle: string;
+  project: typeof projects.$inferSelect;
   className?: string;
-  projectId: string;
-  activeTab: "analysis" | "podcast" | "visualization" | "flashcards" | "chat";
+  activeTab: "analysis" | "flashcards" | "chat" | "insights" | "diagram" | "podcast" | "visualization";
   setActiveTab: (
-    tab: "analysis" | "podcast" | "visualization" | "flashcards" | "chat",
+    tab: "analysis" | "flashcards" | "chat" | "insights" | "diagram" | "podcast" | "visualization",
   ) => void;
 }
 
-type Tab = "analysis" | "podcast" | "visualization" | "flashcards" | "chat";
+type Tab = "analysis" | "flashcards" | "chat" | "insights" | "diagram" | "podcast" | "visualization";
 
 export function AIPaperAnalysis({
-  userQuery,
-  paperTitle,
+  project,
   className,
-  projectId,
   activeTab,
   setActiveTab,
 }: AIPaperAnalysisProps) {
@@ -67,31 +68,31 @@ export function AIPaperAnalysis({
       id: "analysis" as Tab,
       label: "Simplified Paper",
       icon: Brain,
-      content: <SimplifiedPaper />,
+      content: <SimplifiedPaper project={project} />,
     },
     {
       id: "chat" as Tab,
       label: "AI Chat",
       icon: MessageSquare,
-      content: <AIChatTab projectId={projectId} />,
+      content: <AIChatTab project={project} />,
     },
     {
-      id: "podcast" as Tab,
-      label: "AI Podcast",
-      icon: Headphones,
-      content: <AIPodcastTab />,
-    },
-    {
-      id: "visualization" as Tab,
-      label: "Visualization",
+      id: "insights" as Tab,
+      label: "Insights",
       icon: LineChart,
-      content: <VisualizationTab />,
+      content: <InsightsView project={project} />,
+    },
+    {
+      id: "diagram" as Tab,
+      label: "Diagram",
+      icon: LineChart,
+      content: <DiagramView project={project} />,
     },
     {
       id: "flashcards" as Tab,
       label: "Flashcards",
       icon: SquareStack,
-      content: <FlashcardsTab projectId={projectId} />,
+      content: <FlashcardsTab projectId={project.id} />,
     },
   ];
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FlashcardForm } from "./flashcard-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import ReactDOM from "react-dom";
 
 interface TextSelectionPopupProps {
   projectId: string;
@@ -48,9 +49,7 @@ export function TextSelectionPopup({
 
   // Handle text selection everywhere, with special focus on PDFs
   useEffect(() => {
-    console.log("Setting up selection handlers for PDFs and regular content");
-
-    const handleSelection = (event: MouseEvent) => {
+    const handleSelectionChange = () => {
       setTimeout(() => {
         const selection = window.getSelection();
         const text = selection?.toString().trim();
@@ -60,7 +59,21 @@ export function TextSelectionPopup({
           return;
         }
 
-        console.log("Text selected:", text.substring(0, 30));
+        // Don't show popup if selection is inside an input, textarea, or contenteditable
+        if (selection && selection.anchorNode) {
+          let node: Node | null = selection.anchorNode;
+          while (node) {
+            if (
+              node instanceof HTMLElement &&
+              (node.tagName === "INPUT" || node.tagName === "TEXTAREA" || node.isContentEditable)
+            ) {
+              updatePopup("none");
+              return;
+            }
+            node = node.parentNode;
+          }
+        }
+
         selectedTextRef.current = text;
         setSelectedText(text);
 
@@ -75,7 +88,6 @@ export function TextSelectionPopup({
           const left = `${window.scrollX + rect.left + rect.width / 2 - 70}px`;
           const top = `${window.scrollY + rect.bottom + 10}px`;
 
-          console.log(`Showing popup at ${top}, ${left}`);
           updatePopup("block", top, left);
         } catch (error) {
           console.error("Error handling selection:", error);
@@ -83,65 +95,9 @@ export function TextSelectionPopup({
       }, 50);
     };
 
-    // Handle mouseup in document
-    document.addEventListener("mouseup", handleSelection);
-
-    // Special handler for PDF text content - use mutation observer to attach listener to PDF text layers
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length) {
-          const textLayers = document.querySelectorAll(
-            ".react-pdf__Page__textContent",
-          );
-          textLayers.forEach((layer) => {
-            console.log("Adding listener to PDF text layer");
-            layer.addEventListener(
-              "mouseup",
-              (e) => {
-                console.log("PDF text selection detected");
-                e.stopPropagation(); // Prevent double firing
-                handleSelection(e as MouseEvent);
-              },
-              true,
-            );
-          });
-        }
-      }
-    });
-
-    // Start observing document for PDF layers
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Directly attach listeners to any existing PDF layers
-    const existingTextLayers = document.querySelectorAll(
-      ".react-pdf__Page__textContent",
-    );
-    existingTextLayers.forEach((layer) => {
-      layer.addEventListener(
-        "mouseup",
-        (e) => {
-          console.log("PDF text selection from existing layer");
-          e.stopPropagation();
-          handleSelection(e as MouseEvent);
-        },
-        true,
-      );
-    });
-
+    document.addEventListener("selectionchange", handleSelectionChange);
     return () => {
-      document.removeEventListener("mouseup", handleSelection);
-      observer.disconnect();
-
-      // Clean up listeners on text layers
-      const textLayers = document.querySelectorAll(
-        ".react-pdf__Page__textContent",
-      );
-      textLayers.forEach((layer) => {
-        layer.removeEventListener(
-          "mouseup",
-          handleSelection as unknown as EventListener,
-        );
-      });
+      document.removeEventListener("selectionchange", handleSelectionChange);
     };
   }, [updatePopup]);
 
@@ -168,32 +124,35 @@ export function TextSelectionPopup({
 
   return (
     <>
-      <div
-        ref={popupRef}
-        className="fixed z-[1000] bg-transparent rounded-lg"
-        style={popupStyle}
-      >
-        <div className="flex flex-col gap-2 p-2">
-          <Button
-            size="sm"
-            variant="default"
-            className="flex items-center gap-2 bg-[#C96442] hover:bg-[#C96442]/90"
-            onClick={handleCreateFlashcard}
-          >
-            <SquareStack className="h-4 w-4" />
-            Add to Flashcards
-          </Button>
-          <Button
-            size="sm"
-            variant="default"
-            className="flex items-center gap-2 bg-[#C96442] hover:bg-[#C96442]/90"
-            onClick={handleAddToAIChat}
-          >
-            <MessageSquare className="h-4 w-4" />
-            Add to AI Chat
-          </Button>
-        </div>
-      </div>
+      {typeof window !== "undefined" && ReactDOM.createPortal(
+        <div
+          ref={popupRef}
+          className="fixed z-[10000] bg-transparent rounded-lg"
+          style={popupStyle}
+        >
+          <div className="flex flex-col gap-2 p-2">
+            <Button
+              size="sm"
+              variant="default"
+              className="flex items-center gap-2 bg-[#C96442] hover:bg-[#C96442]/90"
+              onClick={handleCreateFlashcard}
+            >
+              <SquareStack className="h-4 w-4" />
+              Add to Flashcards
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              className="flex items-center gap-2 bg-[#C96442] hover:bg-[#C96442]/90"
+              onClick={handleAddToAIChat}
+            >
+              <MessageSquare className="h-4 w-4" />
+              Add to AI Chat
+            </Button>
+          </div>
+        </div>,
+        document.body
+      )}
 
       <FlashcardForm
         projectId={projectId}

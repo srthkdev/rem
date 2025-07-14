@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState } from "react";
 import { Copy, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,51 +8,48 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useChatStore } from "@/lib/store/chat-store";
 
+import { projects } from "@/database/schema";
+
 interface AIChatTabProps {
-  projectId: string;
+  project: typeof projects.$inferSelect;
 }
 
-export function AIChatTab({ projectId }: AIChatTabProps) {
+export function AIChatTab({ project }: AIChatTabProps) {
+  const [messages, setMessages] = useState<{id: number; role: 'user' | 'assistant'; content: string}[]>([]);
   const [input, setInput] = useState("");
-  const { addMessage } = useChatStore();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Get messages from the store
-  const allMessages = useChatStore((state) => state.messages);
-
-  // Filter messages for this project
-  const messages = useMemo(() => {
-    return allMessages.filter((m) => m.projectId === projectId);
-  }, [allMessages, projectId]);
-
-  // On mount, check for draft
-  useEffect(() => {
-    const draft = localStorage.getItem("ai-chat-draft");
-    if (draft) {
-      setInput(draft);
-      localStorage.removeItem("ai-chat-draft");
-    }
-  }, []);
-
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // Add user message to store
-    addMessage({
-      content: input,
-      sender: "user",
-      projectId,
-    });
-
-    // Add AI response (hardcoded for now)
-    addMessage({
-      content:
-        "Hello! I am REM AI, your research assistant. I have analyzed your paper and I'm here to help you understand it better. I have access to the full context of your research paper, including its methodology, findings, and implications. How can I assist you today?",
-      sender: "ai",
-      projectId,
-    });
-
+    const newMessages = [...messages, { id: Date.now(), role: "user" as const, content: input }];
+    setMessages(newMessages);
     setInput("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: input,
+          vectorStorePath: project.vectorStorePath,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response from AI");
+      }
+
+      const { answer } = await response.json();
+      setMessages([...newMessages, { id: Date.now() + 1, role: "assistant" as const, content: answer }]);
+    } catch (error) {
+      console.error(error);
+      setMessages([...newMessages, { id: Date.now() + 2, role: "assistant" as const, content: "Sorry, something went wrong." }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCopy = (content: string) => {
@@ -69,20 +66,20 @@ export function AIChatTab({ projectId }: AIChatTabProps) {
               key={message.id}
               className={cn(
                 "flex w-full",
-                message.sender === "user" ? "justify-end" : "justify-start",
+                message.role === "user" ? "justify-end" : "justify-start",
               )}
             >
               <div
                 className={cn(
                   "max-w-[80%] rounded-lg p-3",
-                  message.sender === "user"
+                  message.role === "user"
                     ? "bg-[#C96442] text-[#FAF9F6]"
                     : "bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6]",
                 )}
               >
                 <div className="flex items-start gap-2">
                   <div className="flex-1 break-words">{message.content}</div>
-                  {message.sender === "ai" && (
+                  {message.role === "assistant" && (
                     <Button
                       variant="ghost"
                       size="icon"

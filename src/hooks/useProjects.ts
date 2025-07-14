@@ -4,10 +4,21 @@ import { z } from "zod";
 export const ProjectSchema = z.object({
   id: z.string(),
   title: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
   paper: z.any().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  userId: z.string().optional(),
+  status: z.string().nullable().optional(),
+  paperText: z.string().nullable().optional(),
+  vectorStorePath: z.string().nullable().optional(),
+  summaryEli5: z.string().nullable().optional(),
+  summaryCollege: z.string().nullable().optional(),
+  summaryExpert: z.string().nullable().optional(),
+  extractedCodeSnippets: z.any().nullable().optional(),
+  extractedReferences: z.any().nullable().optional(),
+  keyTerms: z.any().nullable().optional(),
+  diagramSyntax: z.string().nullable().optional(),
 });
 
 export type Project = z.infer<typeof ProjectSchema>;

@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { ELI5Paper } from "./eli5-paper";
-import { CollegePaper } from "./college-paper";
-import { ExpertPaper } from "./expert-paper";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -9,16 +7,20 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
+import { projects } from "@/database/schema";
 
 const MODES = [
-  { key: "eli5", label: "Explain Like I'm 5 (ELI5)" },
-  { key: "college", label: "College Student" },
-  { key: "expert", label: "Expert" },
-];
+  { key: "eli5", label: "For Kids (ELI5)" },
+  { key: "college", label: "College Level" },
+  { key: "expert", label: "Expert Level" },
+] as const;
 
-export function SimplifiedPaper() {
+interface SimplifiedPaperProps {
+  project: typeof projects.$inferSelect;
+}
+
+export function SimplifiedPaper({ project }: SimplifiedPaperProps) {
   const [mode, setMode] = useState("eli5");
   const [open, setOpen] = useState(false);
 
@@ -64,9 +66,9 @@ export function SimplifiedPaper() {
         </DropdownMenu>
       </div>
       <div>
-        {mode === "eli5" && <ELI5Paper />}
-        {mode === "college" && <CollegePaper />}
-        {mode === "expert" && <ExpertPaper />}
+        {mode === "eli5" && <div className="prose dark:prose-invert max-w-none"><p>{project.summaryEli5 || "Summary not available."}</p></div>}
+        {mode === "college" && <div className="prose dark:prose-invert max-w-none"><p>{project.summaryCollege || "Summary not available."}</p></div>}
+        {mode === "expert" && <div className="prose dark:prose-invert max-w-none"><p>{project.summaryExpert || "Summary not available."}</p></div>}
       </div>
     </div>
   );

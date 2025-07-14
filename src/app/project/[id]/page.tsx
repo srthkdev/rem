@@ -38,7 +38,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const [useGoogleViewer, setUseGoogleViewer] = useState(false);
   const [waited, setWaited] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "analysis" | "podcast" | "visualization" | "flashcards" | "chat"
+    "analysis" | "flashcards" | "chat" | "insights" | "diagram" | "podcast" | "visualization"
   >("analysis");
 
   // Get project from React Query
@@ -79,20 +79,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   // Update on initial load to ensure layout is correct
   useEffect(() => {
-    function updateSidebarClass() {
-      const sidebar = document.querySelector("aside");
-
-      // Directly update the body class based on sidebar state
-      if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
-        document.body.classList.add("sidebar-collapsed");
-      } else {
-        document.body.classList.remove("sidebar-collapsed");
-      }
+    if (project && project.status === 'pending' && project.paperText) {
+      fetch(`/api/projects/${project.id}/process`, { method: 'POST' });
     }
-
-    // Run immediately on component mount
-    updateSidebarClass();
-  }, []);
+  }, [project]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -304,15 +294,18 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               )}
             >
               <div className="relative flex flex-col h-full w-full overflow-hidden">
-                <AIPaperAnalysis
-                  userQuery={project.description}
-                  paperTitle={
-                    project.paper ? project.paper.title : project.title
-                  }
-                  projectId={id}
-                  activeTab={activeTab}
-                  setActiveTab={setActiveTab}
-                />
+                {project.status === 'complete' ? (
+                  <AIPaperAnalysis
+                    project={project as any}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    className="h-full"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p>Processing paper... this may take a moment.</p>
+                  </div>
+                )}
               </div>
             </ResizeablePanel>
           </ResizeablePrimitive.PanelGroup>

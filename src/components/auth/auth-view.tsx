@@ -409,11 +409,11 @@ export function AuthView({ pathname }: { pathname: string }) {
 
           <p className="text-muted-foreground text-xs text-center">
             By using Rem, you agree to our{" "}
-            <Link href="/terms" className="text-[#C96442] hover:underline">
+            <Link href="/#" className="text-[#C96442] hover:underline">
               Terms
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" className="text-[#C96442] hover:underline">
+            <Link href="/#" className="text-[#C96442] hover:underline">
               Privacy Policy
             </Link>
           </p>
