@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Tag,
   MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ResizeablePanel, ResizeableHandle } from "@/components/ui/resizeable";
@@ -22,7 +23,7 @@ import {
   FlashcardList,
   TextSelectionPopup,
 } from "@/components/paper-analysis/flashcard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ProjectPageProps {
   params: Promise<{ id: string }> & { id: string };
@@ -30,9 +31,10 @@ interface ProjectPageProps {
 
 export default function ProjectPage({ params }: ProjectPageProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const unwrappedParams = React.use(params);
   const id = unwrappedParams.id;
-  const [loading, setLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [expandedView, setExpandedView] = useState<"pdf" | "ai" | null>(null);
   const [usePDFFallback, setUsePDFFallback] = useState(false);
   const [useGoogleViewer, setUseGoogleViewer] = useState(false);
@@ -60,8 +62,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     if (!project && waited) {
       toast.error("Project not found");
       router.push("/project");
-    } else if (project) {
-      setLoading(false);
     }
   }, [project, router, waited]);
 
@@ -77,12 +77,32 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     }
   }, [project, usePDFFallback]);
 
-  // Update on initial load to ensure layout is correct
-  useEffect(() => {
-    if (project && project.status === 'pending' && project.paperText) {
-      fetch(`/api/projects/${project.id}/process`, { method: 'POST' });
+  const handleProcessPaper = async () => {
+    if (!project) return;
+    setIsProcessing(true);
+    toast.info("Starting AI paper analysis...", {
+      description: "This may take a moment.",
+    });
+    try {
+      const response = await fetch(`/api/projects/${project.id}/process`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to process paper");
+      }
+      toast.success("AI analysis complete!", {
+        description: "The page will now update.",
+      });
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+    } catch (error) {
+      console.error("Error processing paper:", error);
+      toast.error("AI analysis failed.", {
+        description: "Please check the console for more details.",
+      });
+    } finally {
+      setIsProcessing(false);
     }
-  }, [project]);
+  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -99,13 +119,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const toggleExpandView = (section: "pdf" | "ai") => {
     setExpandedView(expandedView === section ? null : section);
   };
-
-  // Add paper categories if not present
-  const defaultCategories = [
-    "Machine Learning",
-    "Neural Networks",
-    "Computer Vision",
-  ];
 
   if (isLoading || (!project && !waited))
     return (
@@ -302,8 +315,26 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                     className="h-full"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p>Processing paper... this may take a moment.</p>
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <Sparkles className="h-12 w-12 text-[#C96442] mb-4" />
+                    <h3 className="text-xl font-semibold text-[#262625] dark:text-[#FAF9F6] mb-2">
+                      AI Paper Analysis
+                    </h3>
+                    <p className="text-sm text-[#262625]/70 dark:text-[#BFB8AC] mb-6">
+                      Generate summaries, insights, diagrams, and more.
+                    </p>
+                    <Button
+                      onClick={handleProcessPaper}
+                      disabled={isProcessing}
+                      className="bg-[#C96442] text-white hover:bg-[#C96442]/90"
+                    >
+                      {isProcessing ? "Processing..." : "Generate AI Analysis"}
+                    </Button>
+                     {project.status === 'failed' && (
+                      <p className="text-red-500 text-xs mt-4">
+                        Previous analysis attempt failed. Please try again.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

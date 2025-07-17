@@ -216,31 +216,52 @@ export default function NewProject() {
     }
     setIsCreating(true);
     const toastId = toast.loading("Creating project...");
-    createProjectMutation.mutate(
-      {
-        title: paper.title,
-        description: userInput,
-        paper: paper,
-      },
-      {
-        onSuccess: (data) => {
-          toast.dismiss(toastId);
-          toast.success("Project created successfully!");
-          queryClient.invalidateQueries({ queryKey: ["projects"] });
-          setIsCreating(false);
-          if (data && data.id) {
-            router.push(`/project/${data.id}`);
-          } else {
-            router.push("/project");
-          }
+
+    try {
+      // Extract text from PDF
+      const textResponse = await fetch("/api/extract-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: paper.pdfUrl }),
+      });
+
+      if (!textResponse.ok) {
+        throw new Error("Failed to extract text from PDF");
+      }
+
+      const { text } = await textResponse.json();
+
+      createProjectMutation.mutate(
+        {
+          title: paper.title,
+          description: userInput,
+          paper: paper,
+          paperText: text,
         },
-        onError: () => {
-          toast.dismiss(toastId);
-          toast.error("Failed to create project. Please try again.");
-          setIsCreating(false);
+        {
+          onSuccess: (data) => {
+            toast.dismiss(toastId);
+            toast.success("Project created successfully!");
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+            setIsCreating(false);
+            if (data && data.id) {
+              router.push(`/project/${data.id}`);
+            } else {
+              router.push("/project");
+            }
+          },
+          onError: () => {
+            toast.dismiss(toastId);
+            toast.error("Failed to create project. Please try again.");
+            setIsCreating(false);
+          },
         },
-      },
-    );
+      );
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error("Failed to create project. Please try again.");
+      setIsCreating(false);
+    }
   };
 
   // Handle input change

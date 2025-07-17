@@ -24,6 +24,12 @@ export function SimplifiedPaper({ project }: SimplifiedPaperProps) {
   const [mode, setMode] = useState("eli5");
   const [open, setOpen] = useState(false);
 
+  const summary = {
+    eli5: project.summaryEli5,
+    college: project.summaryCollege,
+    expert: project.summaryExpert,
+  }[mode];
+
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
@@ -66,9 +72,11 @@ export function SimplifiedPaper({ project }: SimplifiedPaperProps) {
         </DropdownMenu>
       </div>
       <div>
-        {mode === "eli5" && <div className="prose dark:prose-invert max-w-none"><p>{project.summaryEli5 || "Summary not available."}</p></div>}
-        {mode === "college" && <div className="prose dark:prose-invert max-w-none"><p>{project.summaryCollege || "Summary not available."}</p></div>}
-        {mode === "expert" && <div className="prose dark:prose-invert max-w-none"><p>{project.summaryExpert || "Summary not available."}</p></div>}
+        {summary ? (
+          <div className="prose dark:prose-invert max-w-none"><p>{summary}</p></div>
+        ) : (
+          <p>Summary not available.</p>
+        )}
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ export const CreateProjectSchema = z.object({
   authors: z.array(z.string()).optional(),
   pdfUrl: z.string().url().optional(),
   publishedDate: z.string().optional(),
+  paperText: z.string().optional(),
 });
 
 export type CreateProjectInput = z.infer<typeof CreateProjectSchema>;

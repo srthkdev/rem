@@ -15,6 +15,7 @@ const createProjectSchema = z.object({
   authors: z.array(z.string()).optional(),
   pdfUrl: z.string().url().optional(),
   publishedDate: z.string().optional(),
+  paperText: z.string().optional(),
 });
 
 // Helper to get user from session-token cookie
@@ -44,12 +45,24 @@ export async function POST(req: NextRequest) {
     const validatedData = createProjectSchema.parse(body);
     const now = new Date();
     const projectId = uuidv4();
+    
+    // Clean the paperText to remove null bytes and invalid UTF-8 characters
+    let cleanedPaperText = validatedData.paperText;
+    if (cleanedPaperText) {
+      // Remove null bytes and other invalid characters
+      cleanedPaperText = cleanedPaperText
+        .replace(/\x00/g, '') // Remove null bytes
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove other control characters
+        .trim();
+    }
+    
     await db.insert(projects).values({
       id: projectId,
       userId: user.id,
       title: validatedData.title,
       description: validatedData.description || "",
       paper: validatedData.paper || null,
+      paperText: cleanedPaperText || null,
       createdAt: now,
       updatedAt: now,
     });

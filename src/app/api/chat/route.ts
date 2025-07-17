@@ -1,34 +1,68 @@
-
-import { NextRequest, NextResponse } from "next/server";
-import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
-import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
-import { createRetrievalChain } from "langchain/chains/retrieval";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/database/db";
+import { projects } from "@/database/schema";
+import { eq } from "drizzle-orm";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: NextRequest) {
-  const { message, vectorStorePath } = await req.json();
+  try {
+    const { messages, projectId } = await req.json();
 
-  // 1. Load the model and the specific vector store for this paper
-  const model = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
-  const embeddings = new GoogleGenerativeAIEmbeddings();
-  const vectorStore = await FaissStore.load(vectorStorePath, embeddings);
-  const retriever = vectorStore.asRetriever();
+    if (!projectId) {
+      return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
+    }
 
-  // 2. Create the RAG Chain
-  const prompt = ChatPromptTemplate.fromTemplate(`
-    Answer the user's question based only on the following context:
-    <context>{context}</context>
-    Question: {input}
-  `);
-  const combineDocsChain = await createStuffDocumentsChain({ llm: model, prompt });
-  const retrievalChain = await createRetrievalChain({
-    retriever,
-    combineDocsChain,
-  });
+    // Get project and vector store path
+    const [project] = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
 
-  // 3. Invoke the chain to get a contextual answer
-  const result = await retrievalChain.invoke({ input: message });
+    if (!project || !project.vectorStorePath) {
+      return NextResponse.json({ error: 'Project or vector store not found' }, { status: 404 });
+    }
 
-  return NextResponse.json({ answer: result.answer });
+    // Load the vector store
+    const embeddings = new GoogleGenerativeAIEmbeddings();
+    const vectorStore = await FaissStore.load(project.vectorStorePath, embeddings);
+
+    // Get the last user message
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.role !== 'user') {
+      return NextResponse.json({ error: 'Invalid message format' }, { status: 400 });
+    }
+
+    // Search for relevant context
+    const searchResults = await vectorStore.similaritySearch(lastMessage.content, 5);
+    const context = searchResults.map(doc => doc.pageContent).join('\n\n');
+
+    // Create the prompt with context
+    const prompt = `You are an AI assistant helping with a research paper analysis. Use the following context from the paper to answer the user's question. If the context doesn't contain enough information to answer the question, say so.
+
+CONTEXT FROM THE PAPER:
+${context}
+
+USER QUESTION:
+${lastMessage.content}
+
+Please provide a helpful, accurate response based on the paper content.`;
+
+    // Generate response using Gemini
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+
+    return NextResponse.json({ 
+      role: 'assistant', 
+      content: response 
+    });
+  } catch (error) {
+    console.error('Chat error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

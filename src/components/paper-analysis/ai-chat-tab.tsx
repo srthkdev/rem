@@ -1,122 +1,152 @@
 "use client";
 
-import React, { useState } from "react";
-import { Copy, Send } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { useChatStore } from "@/lib/store/chat-store";
-
+import { Input } from "@/components/ui/input";
+import { Send, Bot, User } from "lucide-react";
 import { projects } from "@/database/schema";
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 interface AIChatTabProps {
   project: typeof projects.$inferSelect;
 }
 
 export function AIChatTab({ project }: AIChatTabProps) {
-  const [messages, setMessages] = useState<{id: number; role: 'user' | 'assistant'; content: string}[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const handleSendMessage = async () => {
+    if (!input.trim() || isLoading) return;
 
-    const newMessages = [...messages, { id: Date.now(), role: "user" as const, content: input }];
-    setMessages(newMessages);
+    const userMessage: Message = { role: 'user', content: input.trim() };
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          message: input,
-          vectorStorePath: project.vectorStorePath,
+          messages: [...messages, userMessage],
+          projectId: project.id,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response from AI");
+        throw new Error('Failed to get response');
       }
 
-      const { answer } = await response.json();
-      setMessages([...newMessages, { id: Date.now() + 1, role: "assistant" as const, content: answer }]);
+      const data = await response.json();
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.content,
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error(error);
-      setMessages([...newMessages, { id: Date.now() + 2, role: "assistant" as const, content: "Sorry, something went wrong." }]);
+      console.error('Chat error:', error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCopy = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast.success("Copied to clipboard!");
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {messages.map((message) => (
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 ? (
+          <div className="text-center text-gray-500 mt-8">
+            <Bot className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p>Ask me anything about this research paper!</p>
+            <p className="text-sm mt-2">I can help explain concepts, summarize sections, or answer specific questions.</p>
+          </div>
+        ) : (
+          messages.map((message, index) => (
             <div
-              key={message.id}
-              className={cn(
-                "flex w-full",
-                message.role === "user" ? "justify-end" : "justify-start",
-              )}
+              key={index}
+              className={`flex gap-3 ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
             >
-              <div
-                className={cn(
-                  "max-w-[80%] rounded-lg p-3",
-                  message.role === "user"
-                    ? "bg-[#C96442] text-[#FAF9F6]"
-                    : "bg-[#E3DACC]/50 dark:bg-[#BFB8AC]/10 text-[#262625] dark:text-[#FAF9F6]",
-                )}
-              >
-                <div className="flex items-start gap-2">
-                  <div className="flex-1 break-words">{message.content}</div>
-                  {message.role === "assistant" && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 text-[#262625]/70 dark:text-[#BFB8AC] hover:text-[#262625] dark:hover:text-[#FAF9F6] hover:bg-transparent"
-                      onClick={() => handleCopy(message.content)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  )}
+              {message.role === 'assistant' && (
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-white" />
                 </div>
+              )}
+              <div
+                className={`max-w-[80%] p-3 rounded-lg ${
+                  message.role === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{message.content}</p>
+              </div>
+              {message.role === 'user' && (
+                <div className="flex-shrink-0 w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
+                </div>
+              )}
+            </div>
+          ))
+        )}
+        {isLoading && (
+          <div className="flex gap-3 justify-start">
+            <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <Bot className="h-4 w-4 text-white" />
+            </div>
+            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
-          ))}
-        </div>
-      </ScrollArea>
+          </div>
+        )}
+      </div>
 
-      <form
-        onSubmit={handleSend}
-        className="p-4 border-t border-[#E3DACC] dark:border-[#BFB8AC]/30"
-      >
+      {/* Input Area */}
+      <div className="border-t border-gray-200 dark:border-gray-700 p-4">
         <div className="flex gap-2">
-          <input
-            type="text"
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask anything about your paper..."
-            className="flex-1 bg-transparent border border-[#E3DACC] dark:border-[#BFB8AC]/30 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C96442] text-[#262625] dark:text-[#FAF9F6] placeholder:text-[#262625]/50 dark:placeholder:text-[#BFB8AC]/50"
+            onKeyPress={handleKeyPress}
+            placeholder="Ask about the paper..."
+            disabled={isLoading}
+            className="flex-1"
           />
           <Button
-            type="submit"
+            onClick={handleSendMessage}
+            disabled={!input.trim() || isLoading}
             size="icon"
-            className="bg-[#C96442] hover:bg-[#C96442]/90 text-[#FAF9F6]"
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
+
