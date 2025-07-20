@@ -112,10 +112,26 @@ ${paperText.substring(0, 10000)}`;
 
 RESEARCH PAPER TEXT:
 ${paperText.substring(0, 10000)}`;
-    const diagramPrompt = `Create a Mermaid.js flowchart that visualizes the core methodology or workflow described in the RESEARCH PAPER. Return ONLY the Mermaid syntax in a single code block. If no clear workflow is present, return an empty string.
+    const diagramPrompt = `Create a valid Mermaid.js flowchart that visualizes the core methodology or workflow described in the RESEARCH PAPER. 
+
+CRITICAL SYNTAX RULES - FOLLOW EXACTLY:
+1. First line: "flowchart TD"
+2. Each subsequent line: NodeID[Label] --> NodeID[Label]
+3. Node IDs: Only A, B, C, D, E, F, G, H (single letters)
+4. Labels: Max 15 characters, no parentheses, no special chars
+5. Each connection on its own line
+6. Maximum 6 nodes total
+
+EXACT FORMAT TO FOLLOW:
+flowchart TD
+A[Step One] --> B[Step Two]
+B[Step Two] --> C[Step Three]
+C[Step Three] --> D[Final Step]
 
 RESEARCH PAPER TEXT:
-${paperText.substring(0, 8000)}`;
+${paperText.substring(0, 8000)}
+
+Return ONLY the Mermaid syntax following the exact format above.`;
 
     const [
       summaryEli5,
@@ -149,7 +165,19 @@ ${paperText.substring(0, 8000)}`;
       extractedCodeSnippets: entities.codeSnippets || [],
       extractedReferences: entities.references || [],
       keyTerms: externalContext,
-      diagramSyntax: diagramSyntax.response.text().replace(/```mermaid\n|```/g, "").trim(),
+      diagramSyntax: diagramSyntax.response.text()
+        .replace(/```mermaid\n?/g, '')
+        .replace(/```\n?/g, '')
+        .replace(/^```/g, '')
+        .replace(/```$/g, '')
+        .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable characters
+        .replace(/\s*;\s*/g, '') // Remove semicolons
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .replace(/\s*\n\s*/g, '\n') // Clean line breaks
+        .trim() || `flowchart TD
+A[Research Paper] --> B[Analysis]
+B --> C[Results]
+C --> D[Conclusion]`,
     };
   }
 
